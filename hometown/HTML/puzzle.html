@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>123456张三家乡美景拼图</title>
+    <style>
+        body {
+            font-family: 宋体, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            font-family: "方正舒体", serif;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 28px;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            margin: 20px auto;
+            max-width: 1200px;
+        }
+        #pieceContainer {
+            width: 300px;
+            min-height: 500px;
+            border: 2px solid #4a7bab;
+            margin-right: 20px;
+            padding: 10px;
+            background-color: #fff;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .pieceSlot {
+            width: 133px;
+            height: 116px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px dotted #ddd;
+        }
+        #gameContainer {
+            position: relative;
+            width: 534px; /* 原尺寸267*2 */
+            height: 467px;
+            border: 2px solid #4a7bab;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .puzzlePiece {
+            position: relative;
+            cursor: move;
+            border: 1px solid #999;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s;
+        }
+        .puzzlePiece:hover {
+            transform: scale(1.05);
+        }
+        .puzzlePiece.inGame {
+            position: absolute;
+            margin: 0;
+        }
+        #game-description {
+            border: 1px solid #4a7bab;
+            background-color: #fff;
+            padding: 15px;
+            width: 80%;
+            margin: 20px auto;
+            font-size: 16px;
+            font-family: 宋体, sans-serif;
+            text-align: left;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .target {
+            position: absolute;
+            width: 133px; /* 缩小后的尺寸 */
+            height: 116px;
+            border: 1px dotted #ccc;
+        }
+        #resetButton {
+            background-color: #4a7bab;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        #resetButton:hover {
+            background-color: #3b6288;
+        }
+        .completed {
+            border: 2px solid #4CAF50 !important;
+        }
+    </style>
+</head>
+<body>
+    <h2>家乡美景拼图</h2>
+    
+    <div id="game-description">
+        <p>拼图游戏说明：</p>
+        <p>1. 从左侧区域拖动图片碎片到右侧正确的位置</p>
+        <p>2. 当图片靠近正确位置时会自动吸附</p>
+        <p>3. 所有碎片放置正确后，拼图完成</p>
+        <p>4. 祝您游戏愉快！</p>
+    </div>
+    
+    <button id="resetButton" onclick="resetGame()">重置拼图</button>
+    
+    <div class="container">
+        <!-- 左侧碎片区域 -->
+        <div id="pieceContainer"></div>
+        
+        <!-- 右侧拖拽展示区域 -->
+        <div id="gameContainer">
+            <!-- 目标位置 -->
+            <div class="target" id="target1" style="left: 0; top: 0;"></div>
+            <div class="target" id="target2" style="left: 133px; top: 0;"></div>
+            <div class="target" id="target3" style="left: 266px; top: 0;"></div>
+            <div class="target" id="target4" style="left: 399px; top: 0;"></div>
+            <div class="target" id="target5" style="left: 0; top: 116px;"></div>
+            <div class="target" id="target6" style="left: 133px; top: 116px;"></div>
+            <div class="target" id="target7" style="left: 266px; top: 116px;"></div>
+            <div class="target" id="target8" style="left: 399px; top: 116px;"></div>
+        </div>
+    </div>
+    
+    <script>
+        // 拼图碎片信息
+        const pieces = [
+            { id: 1, img: '../Image/piece1.jpg', correctX: 0, correctY: 0 },
+            { id: 2, img: '../Image/piece2.jpg', correctX: 133, correctY: 0 },
+            { id: 3, img: '../Image/piece3.jpg', correctX: 266, correctY: 0 },
+            { id: 4, img: '../Image/piece4.jpg', correctX: 399, correctY: 0 },
+            { id: 5, img: '../Image/piece5.jpg', correctX: 0, correctY: 116 },
+            { id: 6, img: '../Image/piece6.jpg', correctX: 133, correctY: 116 },
+            { id: 7, img: '../Image/piece7.jpg', correctX: 266, correctY: 116 },
+            { id: 8, img: '../Image/piece8.jpg', correctX: 399, correctY: 116 }
+        ];
+        
+        // 重置游戏
+        function resetGame() {
+            const pieceContainer = document.getElementById('pieceContainer');
+            const gameContainer = document.getElementById('gameContainer');
+            
+            // 移除游戏区域的所有碎片
+            const inGamePieces = document.querySelectorAll('.puzzlePiece.inGame');
+            inGamePieces.forEach(piece => {
+                piece.classList.remove('inGame');
+                piece.classList.remove('placed');
+                piece.classList.remove('completed');
+                piece.style.position = 'relative';
+                piece.style.left = '';
+                piece.style.top = '';
+                
+                // 将碎片放回原来的槽位
+                const originalSlot = piece.dataset.originalSlot;
+                if (originalSlot) {
+                    document.getElementById(originalSlot).appendChild(piece);
+                } else {
+                    pieceContainer.appendChild(piece);
+                }
+            });
+            
+            // 重置游戏区域背景
+            gameContainer.style.backgroundColor = '#f0f8ff';
+        }
+        
+        // 创建拼图碎片
+        function createPieces() {
+            const pieceContainer = document.getElementById('pieceContainer');
+            
+            // 清空容器
+            pieceContainer.innerHTML = '';
+            
+            // 首先创建固定位置的槽位
+            for (let i = 0; i < 8; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'pieceSlot';
+                slot.id = 'slot' + (i + 1);
+                pieceContainer.appendChild(slot);
+            }
+            
+            // 随机排列碎片
+            const shuffledPieces = [...pieces].sort(() => Math.random() - 0.5);
+            
+            for (let i = 0; i < shuffledPieces.length; i++) {
+                const piece = shuffledPieces[i];
+                const img = document.createElement('img');
+                img.src = piece.img;
+                img.className = 'puzzlePiece';
+                img.id = 'piece' + piece.id;
+                img.width = 133; // 缩小后的尺寸
+                img.height = 116;
+                img.dataset.correctX = piece.correctX;
+                img.dataset.correctY = piece.correctY;
+                img.dataset.originalSlot = 'slot' + (i + 1); // 记录原始槽位ID
+                
+                // 将碎片放入对应的槽位
+                document.getElementById('slot' + (i + 1)).appendChild(img);
+                
+                // 添加拖拽功能
+                makeDraggable(img);
+            }
+        }
+        
+        // 使元素可拖拽
+        function makeDraggable(element) {
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+            let currentDroppable = null;
+            
+            // 创建一个克隆元素用于拖动时显示
+            let dragElement = null;
+            
+            element.onmousedown = function(event) {
+                event.preventDefault();
+                
+                // 记录初始位置
+                startX = event.clientX;
+                startY = event.clientY;
+                
+                // 记录元素原始位置
+                const rect = element.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                
+                // 创建拖动时显示的克隆元素
+                dragElement = element.cloneNode(true);
+                dragElement.style.position = 'absolute';
+                dragElement.style.zIndex = 1000;
+                dragElement.style.opacity = 0.7;
+                document.body.append(dragElement);
+                
+                // 放置在鼠标指针下方（考虑鼠标在元素上的位置）
+                moveAt(event.pageX, event.pageY);
+                
+                // 移动克隆元素到指定位置
+                function moveAt(pageX, pageY) {
+                    dragElement.style.left = pageX - dragElement.offsetWidth / 2 + 'px';
+                    dragElement.style.top = pageY - dragElement.offsetHeight / 2 + 'px';
+                }
+                
+                function onMouseMove(event) {
+                    moveAt(event.pageX, event.pageY);
+                    
+                    // 隐藏拖动元素以便检测下方的元素
+                    dragElement.hidden = true;
+                    let elemBelow = document.elementFromPoint(event.clientX, event.clientY);
+                    dragElement.hidden = false;
+                    
+                    // 检查是否在游戏容器上
+                    if (!elemBelow) return;
+                    
+                    // 查找下方的可放置区域
+                    let droppableBelow = elemBelow.closest('#gameContainer');
+                    
+                    if (currentDroppable != droppableBelow) {
+                        currentDroppable = droppableBelow;
+                    }
+                }
+                
+                // 移动鼠标时移动克隆元素
+                document.addEventListener('mousemove', onMouseMove);
+                
+                // 鼠标释放时处理放置
+                document.onmouseup = function(event) {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.onmouseup = null;
+                    
+                    if (currentDroppable) {
+                        // 成功放置在游戏区域
+                        const gameContainer = document.getElementById('gameContainer');
+                        const containerRect = gameContainer.getBoundingClientRect();
+                        
+                        // 移除克隆元素
+                        dragElement.remove();
+                        
+                        // 将原始元素添加到游戏区域，保持原槽位为空
+                        if (!element.classList.contains('inGame')) {
+                            element.classList.add('inGame');
+                            element.style.position = 'absolute';
+                            gameContainer.appendChild(element);
+                        }
+                        
+                        // 计算在游戏区域内的位置
+                        let left = event.clientX - containerRect.left - element.offsetWidth / 2;
+                        let top = event.clientY - containerRect.top - element.offsetHeight / 2;
+                        
+                        // 限制在游戏区域内
+                        if (left < 0) left = 0;
+                        if (top < 0) top = 0;
+                        if (left > containerRect.width - element.offsetWidth)
+                            left = containerRect.width - element.offsetWidth;
+                        if (top > containerRect.height - element.offsetHeight)
+                            top = containerRect.height - element.offsetHeight;
+                        
+                        element.style.left = left + 'px';
+                        element.style.top = top + 'px';
+                        
+                        // 检查是否接近正确位置（吸附距离为200px）
+                        const correctX = parseInt(element.dataset.correctX);
+                        const correctY = parseInt(element.dataset.correctY);
+                        
+                        const distance = Math.sqrt(
+                            Math.pow(left - correctX, 2) + 
+                            Math.pow(top - correctY, 2)
+                        );
+                        
+                        if (distance < 200) {
+                            // 吸附到正确位置
+                            element.style.left = correctX + "px";
+                            element.style.top = correctY + "px";
+                            element.classList.add('placed');
+                            
+                            // 显示提示信息
+                            alert("123456张三加油！");
+                            
+                            // 检查是否所有碎片都已正确放置
+                            checkCompletion();
+                        }
+                    } else {
+                        // 未放置在游戏区域，返回原位
+                        dragElement.remove();
+                    }
+                    
+                    // 确保清除所有事件监听器
+                    dragElement = null;
+                    currentDroppable = null;
+                };
+            };
+            
+            element.ondragstart = function() {
+                return false;
+            };
+        }
+        
+        // 检查是否完成拼图
+        function checkCompletion() {
+            const placedPieces = document.querySelectorAll('.puzzlePiece.placed');
+            if (placedPieces.length === pieces.length) {
+                setTimeout(() => {
+                    placedPieces.forEach(piece => {
+                        piece.classList.add('completed');
+                    });
+                    document.getElementById('gameContainer').style.backgroundColor = '#f0fff0';
+                    alert("恭喜你完成了拼图！");
+                }, 500);
+            }
+        }
+        
+        // 页面加载完成后初始化游戏
+        window.onload = function() {
+            createPieces();
+        };
+    </script>
+</body>
+</html> 
