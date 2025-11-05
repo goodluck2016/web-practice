@@ -1,17 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>谁不说俺家乡好</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>框架集 - 谁不说俺家乡好</title>
 </head>
-<frameset cols="200,*" border="1" frameborder="yes" framespacing="1">
-    <frame src="nav.html" name="nav" scrolling="auto" noresize>
-    <frameset rows="150,*" border="1" frameborder="yes" framespacing="1">
-        <frame src="header.html" name="header" scrolling="auto" noresize>
-        <frame src="main.html" name="main" scrolling="auto">
+<frameset cols="200, *">
+    <!-- 左侧导航窗口 -->
+    <frame src="nav.html" name="leftFrame" frameborder="1" scrolling="auto">
+    
+    <!-- 右侧框架集 -->
+    <frameset rows="80, *">
+        <!-- 右上标题窗口 -->
+        <frame src="header.html" name="topFrame" frameborder="1" scrolling="no">
+        <!-- 右下内容窗口 -->
+        <frame src="home_intro.html" name="mainFrame" frameborder="1" scrolling="auto">
     </frameset>
+    
+    <!-- 不支持框架时的提示 -->
     <noframes>
-        <body>您的浏览器不支持框架</body>
+        <body>
+            您的浏览器不支持框架功能，请升级浏览器。
+        </body>
     </noframes>
 </frameset>
 </html>

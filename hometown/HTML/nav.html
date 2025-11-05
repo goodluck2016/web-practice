@@ -1,63 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>123456 张三 家乡导航</title>
     <meta charset="UTF-8">
-    <style>
-        body {
-            font-family: "宋体", Arial;
-            margin: 10px;
-        }
-        .nav-item {
-            margin: 15px 0;
-            font-size: 16px;
-        }
-        .nav-item a {
-            text-decoration: none;
-            color: #0066cc;
-        }
-        .nav-item a:hover {
-            text-decoration: underline;
-            color: #ff6600;
-        }
-        .sub-menu {
-            margin-left: 20px;
-            font-size: 14px;
-            display: none;
-        }
-        .nav-item:hover .sub-menu {
-            display: block;
-        }
-        .sub-menu a {
-            display: block;
-            padding: 5px 0;
-        }
-    </style>
-    <script>
-        function showSubMenu(id) {
-            var subMenu = document.getElementById(id);
-            if (subMenu.style.display === "block") {
-                subMenu.style.display = "none";
-            } else {
-                subMenu.style.display = "block";
-            }
-        }
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12345 张三 家乡导航</title>
+    <link rel="stylesheet" href="../Css/nav.css">
 </head>
 <body>
-    <h3>网站导航</h3>
-    
-    <div class="nav-item">
-        <a href="hometown.html" target="main">1. 家乡简要介绍</a>
-        <div class="sub-menu">
-            <a href="dayanta.html" target="main">大雁塔</a>
-            <a href="bingmayong.html" target="main">兵马俑</a>
-            <a href="dongwuyuan.html" target="main">野生动物园</a>
+    <div class="nav-container">
+        <div class="nav-title">网站导航</div>
+        
+        <div class="nav-item">
+            <div class="nav-link has-submenu" onclick="toggleSubmenu('introSubmenu')">家乡简要介绍</div>
+            <div class="submenu" id="introSubmenu">
+                <a href="terracotta.html" target="mainFrame" class="submenu-link">兵马俑</a>
+                <a href="dayan_tower.html" target="mainFrame" class="submenu-link">大雁塔</a>
+                <a href="wildlife_zoo.html" target="mainFrame" class="submenu-link">野生动物园</a>
+            </div>
+        </div>
+        
+        <div class="nav-item">
+            <a href="puzzle.html" target="mainFrame" class="nav-link">家乡美景拼图</a>
         </div>
     </div>
     
-    <div class="nav-item">
-        <a href="puzzle.html" target="main">2. 家乡美景拼图</a>
-    </div>
+    <script>
+        function toggleSubmenu(submenuId) {
+            var submenu = document.getElementById(submenuId);
+            var parent = submenu.parentElement.querySelector('.has-submenu');
+            
+            if (submenu.style.display === 'block') {
+                submenu.style.display = 'none';
+                parent.classList.remove('active');
+            } else {
+                submenu.style.display = 'block';
+                parent.classList.add('active');
+            }
+        }
+        
+        // 点击页面其他地方关闭下拉菜单
+        document.addEventListener('click', function(event) {
+            if (!event.target.classList.contains('has-submenu') && !event.target.closest('.submenu')) {
+                var submenus = document.querySelectorAll('.submenu');
+                var parents = document.querySelectorAll('.has-submenu');
+                
+                for (var i = 0; i < submenus.length; i++) {
+                    submenus[i].style.display = 'none';
+                    parents[i].classList.remove('active');
+                }
+            }
+        });
+        
+        // 防止点击下拉菜单本身导致菜单关闭
+        document.querySelectorAll('.submenu').forEach(function(submenu) {
+            submenu.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+    </script>
 </body>
 </html>

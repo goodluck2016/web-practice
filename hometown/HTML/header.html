@@ -1,75 +1,55 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>网站标题</title>
     <meta charset="UTF-8">
-    <style>
-        body {
-            text-align: center;
-            font-family: "微软雅黑", Arial;
-            margin-top: 20px;
-        }
-        h1 {
-            color: #8B4513;
-            font-size: 24px;
-        }
-        .info {
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        .music-control {
-            margin-top: 15px;
-        }
-        .music-btn {
-            background-color: #8B4513;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .music-btn:hover {
-            background-color: #A0522D;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站标题</title>
+    <link rel="stylesheet" href="../Css/header.css">
 </head>
 <body>
-    <h1>谁不说俺家乡好</h1>
-    <div class="info">
-        学号：123456 姓名：张三
+    <div class="container">
+        <div class="title">谁不说俺家乡好</div>
+        <div class="author">学号：46733  <span style="color: #ccc;">|</span> 姓名：白米</span></div>
     </div>
+   
+    <!-- 音乐控制按钮 -->
+    <div class="music-control" onclick="toggleMusic()">▶</div>
     
-    <div class="music-control">
-        <button id="playMusicBtn" class="music-btn" onclick="toggleMusic()">播放背景音乐</button>
-        <audio id="bgMusic" src="../Sound/background_music.mp3" loop></audio>
-    </div>
-
+    <!-- 背景音乐元素 -->
+    <audio id="backgroundMusic" loop>
+        <source src="../Sound/music.mp3" type="audio/mpeg">
+    </audio>
+    
     <script>
-        var music = document.getElementById("bgMusic");
-        var musicBtn = document.getElementById("playMusicBtn");
+        var music = document.getElementById('backgroundMusic');
+        var musicControl = document.querySelector('.music-control');
         var isPlaying = false;
-        
-        // 设置固定的较低音量（0.4，即40%的音量）
-        music.volume = 0.4;
         
         function toggleMusic() {
             if (isPlaying) {
                 music.pause();
-                musicBtn.innerHTML = "播放背景音乐";
-                isPlaying = false;
+                musicControl.textContent = '▶';
             } else {
-                music.play()
-                    .then(function() {
-                        musicBtn.innerHTML = "暂停背景音乐";
-                        isPlaying = true;
-                    })
-                    .catch(function(error) {
-                        console.log("播放失败:", error);
-                        alert("音乐播放失败，请再次点击按钮尝试播放");
-                    });
+                music.play().catch(function(error) {
+                    console.log('音乐播放需要用户交互：', error);
+                });
+                musicControl.textContent = '⏸';
             }
+            isPlaying = !isPlaying;
         }
+        
+        // 添加点击页面时自动播放音乐的事件监听
+        document.addEventListener('click', function() {
+            if (!isPlaying) {
+                music.play().catch(function(error) {
+                    console.log('音乐播放需要用户交互：', error);
+                });
+                musicControl.textContent = '⏸';
+                isPlaying = true;
+                // 移除这个事件监听，只触发一次
+                document.removeEventListener('click', arguments.callee);
+            }
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,91 @@
+body {
+            background-color: #fafafa;
+            margin: 0;
+            padding: 20px;
+            font-family: "宋体", "Microsoft YaHei", sans-serif;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .main-title {
+            text-align: center;
+            font-family: "方正舒体", "SimSun", serif;
+            color: #8b0000;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        .divider {
+            width: 75%;
+            margin: 20px auto;
+            height: 3px;
+            background-color: #8b0000;
+            border: none;
+        }
+        .intro-content {
+            text-align: center;
+        }
+        .intro-image {
+            width: 800px;
+            height: 600px;
+            border: 5px solid #8b0000;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+        .intro-text {
+            margin-top: 30px;
+            font-size: 18px;
+            line-height: 1.8;
+            color: #333;
+            text-align: left;
+        }
+        .attractions {
+            margin-top: 40px;
+        }
+        .attraction-item {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .attraction-title {
+            color: #8b0000;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .attraction-image {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            margin: 15px auto;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .attraction-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #555;
+        }
+        /* 响应式设计 */
+        @media (max-width: 900px) {
+            .intro-image {
+                width: 100%;
+                height: auto;
+                max-width: 800px;
+            }
+            .main-title {
+                font-size: 28px;
+            }
+        }
+        @media (max-width: 600px) {
+            .main-title {
+                font-size: 24px;
+            }
+            .intro-text {
+                font-size: 16px;
+            }
+            .attraction-title {
+                font-size: 20px;
+            }
+        }

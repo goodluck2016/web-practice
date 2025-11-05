@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>框架集 - 谁不说俺家乡好</title>
+</head>
+<frameset cols="200, *">
+    <!-- 左侧导航窗口 -->
+    <frame src="HTML/nav.html" name="leftFrame" frameborder="1" scrolling="auto">
+    
+    <!-- 右侧框架集 -->
+    <frameset rows="80, *">
+        <!-- 右上标题窗口 -->
+        <frame src="HTML/header.html" name="topFrame" frameborder="1" scrolling="no">
+        <!-- 右下内容窗口 -->
+        <frame src="HTML/home_intro.html" name="mainFrame" frameborder="1" scrolling="auto">
+    </frameset>
+    
+    <!-- 不支持框架时的提示 -->
+    <noframes>
+        <body>
+            您的浏览器不支持框架功能，请升级浏览器。
+        </body>
+    </noframes>
+</frameset>
+</html>
