@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>常见问题解答 (FAQ)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 40px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .faq-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 15px 0;
+        }
+        
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        
+        .faq-question {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+        
+        .faq-question:hover {
+            color: #3498db;
+        }
+        
+        .faq-toggle {
+            font-size: 22px;
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            padding: 0 10px;
+            color: #5a6c7d;
+            font-size: 16px;
+        }
+        
+        .faq-item.active .faq-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .faq-item.active .faq-answer {
+            max-height: 200px;
+            padding: 15px 10px;
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                margin-top: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .faq-question {
+                font-size: 16px;
+            }
+            
+            .faq-answer {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>常见问题解答</h1>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                什么是FAQ系统？
+                <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+                FAQ是Frequently Asked Questions（常见问题解答）的缩写。它是一种收集和展示常见问题及其答案的系统，旨在帮助用户快速找到他们关心的问题的解决方案，减少重复咨询，提高服务效率。
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                如何使用这个FAQ系统？
+                <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+                使用这个FAQ系统非常简单。您只需点击问题标题，对应的答案就会展开显示。再次点击问题标题，答案会收起隐藏。您可以浏览所有问题，找到您需要的信息。
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">
+                如果我找不到我需要的问题答案怎么办？
+                <span class="faq-toggle">▼</span>
+            </div>
+            <div class="faq-answer">
+                如果您在FAQ中找不到您需要的问题答案，您可以联系我们的客户支持团队。我们的工作人员会在24小时内回复您的咨询，并可能将您的问题添加到FAQ中，以便帮助其他有相同疑问的用户。
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                question.addEventListener('click', () => {
+                    // 切换当前项的活动状态
+                    item.classList.toggle('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
