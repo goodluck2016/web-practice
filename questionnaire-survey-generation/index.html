@@ -1,0 +1,2342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SurveyFlow - Web 问卷调查系统</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af',
+                        secondary: '#3b82f6',
+                        accent: '#60a5fa',
+                        neutral: '#f1f5f9',
+                        'neutral-dark': '#64748b',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+            .question-card {
+                @apply bg-white rounded-lg shadow-card p-4 mb-4 border-l-4 border-primary cursor-move transition-all-300;
+            }
+            .question-card:hover {
+                @apply shadow-card-hover border-secondary;
+            }
+            .btn-primary {
+                @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-4 rounded-lg transition-all-300 flex items-center justify-center gap-2;
+            }
+            .btn-secondary {
+                @apply bg-secondary hover:bg-secondary/90 text-white font-medium py-2 px-4 rounded-lg transition-all-300 flex items-center justify-center gap-2;
+            }
+            .btn-outline {
+                @apply border border-primary text-primary hover:bg-primary hover:text-white font-medium py-2 px-4 rounded-lg transition-all-300 flex items-center justify-center gap-2;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all-300;
+            }
+            .tab-active {
+                @apply border-b-2 border-primary text-primary;
+            }
+            .tab-inactive {
+                @apply text-gray-500 hover:text-gray-700;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8f72af8959fb4af199d78d07d74f1e2b~tplv-a9rns2rl98-image.image?rcl=20251106112236EEA3AF6163CE28059B58&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1764991401&x-signature=sQSdzx5NpRXbRCEAfVSWCToN1lQ%3D" alt="SurveyFlow Logo" class="h-10 w-10">
+                <h1 class="text-xl font-bold text-primary">SurveyFlow</h1>
+            </div>
+            <nav class="hidden md:flex items-center gap-6">
+                <a href="#" class="tab-active py-2 px-1 font-medium" data-tab="editor">问卷编辑器</a>
+                <a href="#" class="tab-inactive py-2 px-1 font-medium" data-tab="preview">预览</a>
+                <a href="#" class="tab-inactive py-2 px-1 font-medium" data-tab="analytics">数据分析</a>
+                <a href="#" class="tab-inactive py-2 px-1 font-medium" data-tab="settings">设置</a>
+            </nav>
+            <div class="flex items-center gap-3">
+                <button id="save-btn" class="btn-primary">
+                    <i class="fa fa-save"></i>
+                    <span>保存</span>
+                </button>
+                <button id="publish-btn" class="btn-secondary">
+                    <i class="fa fa-paper-plane"></i>
+                    <span>发布</span>
+                </button>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white border-t border-gray-200">
+            <div class="container mx-auto px-4 py-2 flex flex-col">
+                <a href="#" class="tab-active py-2 px-1 font-medium" data-tab="editor">问卷编辑器</a>
+                <a href="#" class="tab-inactive py-2 px-1 font-medium" data-tab="preview">预览</a>
+                <a href="#" class="tab-inactive py-2 px-1 font-medium" data-tab="analytics">数据分析</a>
+                <a href="#" class="tab-inactive py-2 px-1 font-medium" data-tab="settings">设置</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- 欢迎页面 -->
+        <section id="welcome-section" class="flex flex-col items-center justify-center py-12">
+            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8f72af8959fb4af199d78d07d74f1e2b~tplv-a9rns2rl98-image.image?rcl=20251106112236EEA3AF6163CE28059B58&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1764991401&x-signature=sQSdzx5NpRXbRCEAfVSWCToN1lQ%3D" alt="SurveyFlow Logo" class="h-24 w-24 mb-6">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">欢迎使用 SurveyFlow</h2>
+            <p class="text-gray-600 text-center max-w-2xl mb-8">创建专业的问卷调查，收集有价值的反馈，并获取直观的数据分析报告。</p>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button id="create-survey-btn" class="btn-primary text-lg px-8 py-3">
+                    <i class="fa fa-plus-circle"></i>
+                    创建新问卷
+                </button>
+                <button id="load-survey-btn" class="btn-outline text-lg px-8 py-3">
+                    <i class="fa fa-folder-open"></i>
+                    加载已有问卷
+                </button>
+            </div>
+            
+            <!-- 模板选择 -->
+            <div class="mt-16 w-full max-w-4xl">
+                <h3 class="text-xl font-semibold text-gray-700 mb-6 text-center">快速模板</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 模板 1 -->
+                    <div class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all-300 cursor-pointer border border-gray-100">
+                        <div class="h-3 bg-blue-500 rounded-t-xl"></div>
+                        <div class="p-6">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                                <i class="fa fa-users text-blue-500 text-xl"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">客户满意度调查</h4>
+                            <p class="text-gray-600 text-sm mb-4">收集客户反馈，了解满意度和改进点。</p>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <span><i class="fa fa-question-circle mr-1"></i> 10 个问题</span>
+                                <span class="mx-2">•</span>
+                                <span><i class="fa fa-clock-o mr-1"></i> 5 分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 模板 2 -->
+                    <div class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all-300 cursor-pointer border border-gray-100">
+                        <div class="h-3 bg-green-500 rounded-t-xl"></div>
+                        <div class="p-6">
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                                <i class="fa fa-graduation-cap text-green-500 text-xl"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">课程评价调查</h4>
+                            <p class="text-gray-600 text-sm mb-4">评估教学质量和学生学习体验。</p>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <span><i class="fa fa-question-circle mr-1"></i> 12 个问题</span>
+                                <span class="mx-2">•</span>
+                                <span><i class="fa fa-clock-o mr-1"></i> 7 分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 模板 3 -->
+                    <div class="bg-white rounded-xl shadow-card hover:shadow-card-hover transition-all-300 cursor-pointer border border-gray-100">
+                        <div class="h-3 bg-purple-500 rounded-t-xl"></div>
+                        <div class="p-6">
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                                <i class="fa fa-line-chart text-purple-500 text-xl"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-gray-800 mb-2">市场调研问卷</h4>
+                            <p class="text-gray-600 text-sm mb-4">了解市场需求和消费者偏好。</p>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <span><i class="fa fa-question-circle mr-1"></i> 15 个问题</span>
+                                <span class="mx-2">•</span>
+                                <span><i class="fa fa-clock-o mr-1"></i> 10 分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 问卷编辑器 -->
+        <section id="editor-section" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- 左侧工具栏 -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-card p-4 sticky top-24">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">添加问题</h3>
+                        <div class="space-y-3">
+                            <button class="add-question-btn w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all-300 flex items-center gap-3" data-type="singleChoice">
+                                <i class="fa fa-dot-circle-o text-primary"></i>
+                                <span>单选题</span>
+                            </button>
+                            <button class="add-question-btn w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all-300 flex items-center gap-3" data-type="multipleChoice">
+                                <i class="fa fa-check-square-o text-primary"></i>
+                                <span>多选题</span>
+                            </button>
+                            <button class="add-question-btn w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all-300 flex items-center gap-3" data-type="text">
+                                <i class="fa fa-font text-primary"></i>
+                                <span>填空题</span>
+                            </button>
+                            <button class="add-question-btn w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all-300 flex items-center gap-3" data-type="rating">
+                                <i class="fa fa-star text-primary"></i>
+                                <span>评分题</span>
+                            </button>
+                            <button class="add-question-btn w-full text-left p-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-all-300 flex items-center gap-3" data-type="date">
+                                <i class="fa fa-calendar text-primary"></i>
+                                <span>日期题</span>
+                            </button>
+                        </div>
+                        
+                        <hr class="my-6 border-gray-200">
+                        
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">问卷设置</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">问卷标题</label>
+                                <input type="text" id="survey-title" class="input-field" placeholder="输入问卷标题">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">问卷描述</label>
+                                <textarea id="survey-description" class="input-field" rows="3" placeholder="输入问卷描述（可选）"></textarea>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm font-medium text-gray-700">随机排序问题</label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="randomize-questions" class="sr-only peer">
+                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm font-medium text-gray-700">显示进度条</label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="show-progress" class="sr-only peer" checked>
+                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 中间问题编辑区 -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-card p-6">
+                        <div id="questions-container" class="space-y-4">
+                            <!-- 问题将通过 JavaScript 动态添加 -->
+                            <div class="text-center text-gray-500 py-12">
+                                <i class="fa fa-question-circle text-4xl mb-4"></i>
+                                <p>点击左侧添加问题，或从模板开始</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧属性面板 -->
+                <div class="lg:col-span-1">
+                    <div id="question-properties" class="bg-white rounded-lg shadow-card p-4 sticky top-24 hidden">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">问题属性</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">问题文本</label>
+                                <input type="text" id="question-text" class="input-field" placeholder="输入问题文本">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">问题描述（可选）</label>
+                                <textarea id="question-description" class="input-field" rows="2" placeholder="输入问题描述（可选）"></textarea>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm font-medium text-gray-700">必填</label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="question-required" class="sr-only peer">
+                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                            </div>
+                            
+                            <!-- 选项设置（仅对选择题显示） -->
+                            <div id="options-container" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">选项</label>
+                                <div id="options-list" class="space-y-2">
+                                    <!-- 选项将通过 JavaScript 动态添加 -->
+                                </div>
+                                <button id="add-option-btn" class="mt-2 w-full text-left p-2 bg-gray-50 hover:bg-gray-100 rounded-lg border border-dashed border-gray-300 transition-all-300 flex items-center justify-center gap-2 text-sm text-gray-600">
+                                    <i class="fa fa-plus"></i>
+                                    <span>添加选项</span>
+                                </button>
+                            </div>
+                            
+                            <!-- 评分设置（仅对评分题显示） -->
+                            <div id="rating-container" class="hidden">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">评分范围</label>
+                                <div class="flex items-center gap-4">
+                                    <input type="number" id="rating-min" class="input-field w-1/3" value="1" min="1">
+                                    <span>至</span>
+                                    <input type="number" id="rating-max" class="input-field w-1/3" value="5" min="2">
+                                </div>
+                                <div class="mt-3">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">最低分描述</label>
+                                    <input type="text" id="rating-min-label" class="input-field" placeholder="例如：非常不满意">
+                                </div>
+                                <div class="mt-3">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">最高分描述</label>
+                                    <input type="text" id="rating-max-label" class="input-field" placeholder="例如：非常满意">
+                                </div>
+                            </div>
+                            
+                            <hr class="my-4 border-gray-200">
+                            
+                            <div class="flex justify-between">
+                                <button id="duplicate-question-btn" class="text-gray-600 hover:text-gray-800 flex items-center gap-1">
+                                    <i class="fa fa-clone"></i>
+                                    <span>复制</span>
+                                </button>
+                                <button id="delete-question-btn" class="text-danger hover:text-danger/80 flex items-center gap-1">
+                                    <i class="fa fa-trash"></i>
+                                    <span>删除</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 预览页面 -->
+        <section id="preview-section" class="hidden">
+            <div class="max-w-3xl mx-auto">
+                <div class="bg-white rounded-lg shadow-card p-8 mb-6">
+                    <div id="preview-header" class="text-center mb-8">
+                        <h2 id="preview-title" class="text-2xl font-bold text-gray-800 mb-2">问卷标题</h2>
+                        <p id="preview-description" class="text-gray-600">问卷描述将显示在这里...</p>
+                    </div>
+                    
+                    <div id="preview-progress" class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                        <div class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                    
+                    <div id="preview-questions" class="space-y-6">
+                        <!-- 预览问题将通过 JavaScript 动态添加 -->
+                        <div class="text-center text-gray-500 py-12">
+                            <i class="fa fa-file-text-o text-4xl mb-4"></i>
+                            <p>请先在编辑器中添加问题</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-10 flex justify-between">
+                        <button id="prev-question-btn" class="btn-outline opacity-50 cursor-not-allowed" disabled>
+                            <i class="fa fa-arrow-left"></i>
+                            <span>上一题</span>
+                        </button>
+                        <button id="next-question-btn" class="btn-primary">
+                            <span>下一题</span>
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-gray-500 text-sm">预览模式 - 实际问卷将在此基础上优化显示</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据分析页面 -->
+        <section id="analytics-section" class="hidden">
+            <div class="bg-white rounded-lg shadow-card p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+                    <div>
+                        <h2 id="analytics-title" class="text-2xl font-bold text-gray-800">问卷标题</h2>
+                        <p class="text-gray-600">收集到 <span id="response-count" class="font-semibold text-primary">0</span> 份有效回答</p>
+                    </div>
+                    <div class="flex gap-3 mt-4 md:mt-0">
+                        <button id="export-csv-btn" class="btn-outline">
+                            <i class="fa fa-download"></i>
+                            <span>导出 CSV</span>
+                        </button>
+                        <button id="export-json-btn" class="btn-outline">
+                            <i class="fa fa-code"></i>
+                            <span>导出 JSON</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="no-data-message" class="text-center py-12">
+                    <i class="fa fa-bar-chart text-4xl mb-4 text-gray-300"></i>
+                    <p class="text-gray-500">暂无回答数据，请先发布问卷并收集回答</p>
+                </div>
+                
+                <div id="analytics-content" class="hidden">
+                    <!-- 数据概览卡片 -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                        <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-blue-700">平均完成时间</p>
+                                    <p id="avg-time" class="text-2xl font-bold text-blue-900">5:24</p>
+                                </div>
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fa fa-clock-o text-blue-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-4 border border-green-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-green-700">完成率</p>
+                                    <p id="completion-rate" class="text-2xl font-bold text-green-900">87%</p>
+                                </div>
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fa fa-check-circle text-green-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-purple-700">平均评分</p>
+                                    <p id="avg-rating" class="text-2xl font-bold text-purple-900">4.2/5</p>
+                                </div>
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="fa fa-star text-purple-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 图表展示区 -->
+                    <div id="charts-container" class="space-y-12">
+                        <!-- 图表将通过 JavaScript 动态添加 -->
+                    </div>
+                    
+                    <!-- 智能分析洞察 -->
+                    <div class="mt-12 bg-gray-50 rounded-lg p-6 border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fa fa-lightbulb-o text-yellow-500"></i>
+                            <span>智能分析洞察</span>
+                        </h3>
+                        <div id="insights-container" class="space-y-3">
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="fa fa-info text-blue-500 text-xs"></i>
+                                </div>
+                                <p class="text-gray-700">65% 的受访者表示对产品满意度较高，较上季度提升 10%。</p>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="fa fa-arrow-up text-green-500 text-xs"></i>
+                                </div>
+                                <p class="text-gray-700">用户体验是最受好评的方面，90% 的受访者给予 4 星或 5 星评价。</p>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <i class="fa fa-exclamation text-yellow-500 text-xs"></i>
+                                </div>
+                                <p class="text-gray-700">价格是主要改进点，40% 的受访者认为当前价格偏高。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 设置页面 -->
+        <section id="settings-section" class="hidden">
+            <div class="max-w-3xl mx-auto">
+                <div class="bg-white rounded-lg shadow-card p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">问卷设置</h2>
+                    
+                    <div class="space-y-8">
+                        <!-- 基本设置 -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">基本设置</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">问卷标题</label>
+                                    <input type="text" id="settings-title" class="input-field" placeholder="输入问卷标题">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">问卷描述</label>
+                                    <textarea id="settings-description" class="input-field" rows="3" placeholder="输入问卷描述（可选）"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">问卷主题</label>
+                                    <div class="grid grid-cols-5 gap-3">
+                                        <div class="w-full h-10 bg-blue-500 rounded cursor-pointer border-2 border-blue-500"></div>
+                                        <div class="w-full h-10 bg-green-500 rounded cursor-pointer border-2 border-transparent"></div>
+                                        <div class="w-full h-10 bg-purple-500 rounded cursor-pointer border-2 border-transparent"></div>
+                                        <div class="w-full h-10 bg-orange-500 rounded cursor-pointer border-2 border-transparent"></div>
+                                        <div class="w-full h-10 bg-red-500 rounded cursor-pointer border-2 border-transparent"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 高级设置 -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">高级设置</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium text-gray-700">随机排序问题</label>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="settings-randomize" class="sr-only peer">
+                                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium text-gray-700">显示进度条</label>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="settings-progress" class="sr-only peer" checked>
+                                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium text-gray-700">允许跳过问题</label>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="settings-allow-skip" class="sr-only peer" checked>
+                                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">问卷有效期</label>
+                                    <div class="flex items-center gap-4">
+                                        <select id="settings-expiry" class="input-field">
+                                            <option value="never">永不失效</option>
+                                            <option value="7">7 天</option>
+                                            <option value="30" selected>30 天</option>
+                                            <option value="90">90 天</option>
+                                            <option value="custom">自定义</option>
+                                        </select>
+                                        <input type="date" id="settings-expiry-date" class="input-field hidden">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 发布设置 -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-4">发布设置</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">问卷链接</label>
+                                    <div class="flex">
+                                        <input type="text" id="survey-url" class="input-field rounded-r-none bg-gray-50" value="https://surveyflow.example.com/s/abc123" readonly>
+                                        <button id="copy-url-btn" class="bg-primary hover:bg-primary/90 text-white px-4 rounded-r-lg transition-all-300">
+                                            <i class="fa fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">嵌入代码</label>
+                                    <div class="flex">
+                                        <input type="text" id="embed-code" class="input-field rounded-r-none bg-gray-50" value='<iframe src="https://surveyflow.example.com/s/abc123" width="100%" height="600"></iframe>' readonly>
+                                        <button id="copy-code-btn" class="bg-primary hover:bg-primary/90 text-white px-4 rounded-r-lg transition-all-300">
+                                            <i class="fa fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-sm font-medium text-gray-700">限制每个IP只能提交一次</label>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="settings-limit-ip" class="sr-only peer">
+                                        <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 flex justify-end">
+                        <button id="save-settings-btn" class="btn-primary">
+                            <i class="fa fa-save"></i>
+                            <span>保存设置</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 发布成功弹窗 -->
+        <div id="publish-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa fa-check text-green-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">问卷发布成功！</h3>
+                    <p class="text-gray-600 mb-6">您的问卷已成功发布，可以开始收集回答了。</p>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1 text-left">问卷链接</label>
+                        <div class="flex">
+                            <input type="text" id="modal-survey-url" class="input-field rounded-r-none bg-gray-50" value="https://surveyflow.example.com/s/abc123" readonly>
+                            <button id="modal-copy-url-btn" class="bg-primary hover:bg-primary/90 text-white px-4 rounded-r-lg transition-all-300">
+                                <i class="fa fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="share-btn" class="btn-outline flex-1">
+                            <i class="fa fa-share-alt"></i>
+                            <span>分享问卷</span>
+                        </button>
+                        <button id="view-responses-btn" class="btn-primary flex-1">
+                            <i class="fa fa-bar-chart"></i>
+                            <span>查看回答</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分享弹窗 -->
+        <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">分享问卷</h3>
+                    <button id="close-share-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">问卷链接</label>
+                    <div class="flex">
+                        <input type="text" id="share-survey-url" class="input-field rounded-r-none bg-gray-50" value="https://surveyflow.example.com/s/abc123" readonly>
+                        <button id="share-copy-url-btn" class="bg-primary hover:bg-primary/90 text-white px-4 rounded-r-lg transition-all-300">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-sm text-gray-600 mb-3">通过社交媒体分享：</p>
+                    <div class="flex gap-3">
+                        <button class="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition-all-300">
+                            <i class="fa fa-facebook"></i>
+                        </button>
+                        <button class="w-10 h-10 bg-blue-400 hover:bg-blue-500 text-white rounded-full flex items-center justify-center transition-all-300">
+                            <i class="fa fa-twitter"></i>
+                        </button>
+                        <button class="w-10 h-10 bg-green-600 hover:bg-green-700 text-white rounded-full flex items-center justify-center transition-all-300">
+                            <i class="fa fa-whatsapp"></i>
+                        </button>
+                        <button class="w-10 h-10 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-all-300">
+                            <i class="fa fa-envelope"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600 mb-3">嵌入到您的网站：</p>
+                    <div class="flex">
+                        <input type="text" id="share-embed-code" class="input-field rounded-r-none bg-gray-50 text-sm" value='<iframe src="https://surveyflow.example.com/s/abc123" width="100%" height="600"></iframe>' readonly>
+                        <button id="share-copy-code-btn" class="bg-primary hover:bg-primary/90 text-white px-4 rounded-r-lg transition-all-300">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加载问卷弹窗 -->
+        <div id="load-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">加载问卷</h3>
+                    <button id="close-load-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="no-surveys-message" class="text-center py-8">
+                    <i class="fa fa-folder-open-o text-4xl mb-4 text-gray-300"></i>
+                    <p class="text-gray-500">暂无保存的问卷</p>
+                </div>
+                
+                <div id="surveys-list" class="space-y-3 mb-6 hidden">
+                    <!-- 问卷列表将通过 JavaScript 动态添加 -->
+                </div>
+                
+                <div class="flex justify-end">
+                    <button id="create-new-survey-btn" class="btn-primary">
+                        <i class="fa fa-plus"></i>
+                        <span>创建新问卷</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center gap-2 mb-4 md:mb-0">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8f72af8959fb4af199d78d07d74f1e2b~tplv-a9rns2rl98-image.image?rcl=20251106112236EEA3AF6163CE28059B58&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1764991401&x-signature=sQSdzx5NpRXbRCEAfVSWCToN1lQ%3D" alt="SurveyFlow Logo" class="h-8 w-8">
+                    <h2 class="text-lg font-bold text-primary">SurveyFlow</h2>
+                </div>
+                <div class="text-gray-500 text-sm">
+                    © 2025 SurveyFlow. 专业的问卷调查系统。
+                </div>
+                <div class="flex gap-4 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-question-circle"></i>
+                        <span class="ml-1">帮助</span>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-envelope"></i>
+                        <span class="ml-1">联系我们</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 全局变量
+        let currentSurvey = {
+            id: generateUniqueId(),
+            title: '',
+            description: '',
+            created: new Date().toISOString(),
+            updated: new Date().toISOString(),
+            settings: {
+                randomizeQuestions: false,
+                showProgress: true,
+                requireLogin: false,
+                expiresIn: 30
+            },
+            questions: []
+        };
+        
+        let currentQuestionId = null;
+        let previewCurrentQuestionIndex = 0;
+        let isDragging = false;
+        let draggedElement = null;
+        
+        // DOM 元素
+        const welcomeSection = document.getElementById('welcome-section');
+        const editorSection = document.getElementById('editor-section');
+        const previewSection = document.getElementById('preview-section');
+        const analyticsSection = document.getElementById('analytics-section');
+        const settingsSection = document.getElementById('settings-section');
+        
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        const createSurveyBtn = document.getElementById('create-survey-btn');
+        const loadSurveyBtn = document.getElementById('load-survey-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const publishBtn = document.getElementById('publish-btn');
+        
+        const surveyTitleInput = document.getElementById('survey-title');
+        const surveyDescriptionInput = document.getElementById('survey-description');
+        const randomizeQuestionsInput = document.getElementById('randomize-questions');
+        const showProgressInput = document.getElementById('show-progress');
+        
+        const questionsContainer = document.getElementById('questions-container');
+        const questionProperties = document.getElementById('question-properties');
+        
+        const questionTextInput = document.getElementById('question-text');
+        const questionDescriptionInput = document.getElementById('question-description');
+        const questionRequiredInput = document.getElementById('question-required');
+        
+        const optionsContainer = document.getElementById('options-container');
+        const optionsList = document.getElementById('options-list');
+        const addOptionBtn = document.getElementById('add-option-btn');
+        
+        const ratingContainer = document.getElementById('rating-container');
+        const ratingMinInput = document.getElementById('rating-min');
+        const ratingMaxInput = document.getElementById('rating-max');
+        const ratingMinLabelInput = document.getElementById('rating-min-label');
+        const ratingMaxLabelInput = document.getElementById('rating-max-label');
+        
+        const duplicateQuestionBtn = document.getElementById('duplicate-question-btn');
+        const deleteQuestionBtn = document.getElementById('delete-question-btn');
+        
+        const previewTitle = document.getElementById('preview-title');
+        const previewDescription = document.getElementById('preview-description');
+        const previewProgress = document.getElementById('preview-progress').querySelector('div');
+        const previewQuestions = document.getElementById('preview-questions');
+        const prevQuestionBtn = document.getElementById('prev-question-btn');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        
+        const analyticsTitle = document.getElementById('analytics-title');
+        const responseCount = document.getElementById('response-count');
+        const noDataMessage = document.getElementById('no-data-message');
+        const analyticsContent = document.getElementById('analytics-content');
+        const chartsContainer = document.getElementById('charts-container');
+        
+        const settingsTitleInput = document.getElementById('settings-title');
+        const settingsDescriptionInput = document.getElementById('settings-description');
+        const settingsRandomizeInput = document.getElementById('settings-randomize');
+        const settingsProgressInput = document.getElementById('settings-progress');
+        const settingsAllowSkipInput = document.getElementById('settings-allow-skip');
+        const settingsExpirySelect = document.getElementById('settings-expiry');
+        const settingsExpiryDateInput = document.getElementById('settings-expiry-date');
+        const settingsLimitIpInput = document.getElementById('settings-limit-ip');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        
+        const surveyUrlInput = document.getElementById('survey-url');
+        const copyUrlBtn = document.getElementById('copy-url-btn');
+        const embedCodeInput = document.getElementById('embed-code');
+        const copyCodeBtn = document.getElementById('copy-code-btn');
+        
+        const publishModal = document.getElementById('publish-modal');
+        const modalSurveyUrlInput = document.getElementById('modal-survey-url');
+        const modalCopyUrlBtn = document.getElementById('modal-copy-url-btn');
+        const shareBtn = document.getElementById('share-btn');
+        const viewResponsesBtn = document.getElementById('view-responses-btn');
+        
+        const shareModal = document.getElementById('share-modal');
+        const closeShareModal = document.getElementById('close-share-modal');
+        const shareSurveyUrlInput = document.getElementById('share-survey-url');
+        const shareCopyUrlBtn = document.getElementById('share-copy-url-btn');
+        const shareEmbedCodeInput = document.getElementById('share-embed-code');
+        const shareCopyCodeBtn = document.getElementById('share-copy-code-btn');
+        
+        const loadModal = document.getElementById('load-modal');
+        const closeLoadModal = document.getElementById('close-load-modal');
+        const noSurveysMessage = document.getElementById('no-surveys-message');
+        const surveysList = document.getElementById('surveys-list');
+        const createNewSurveyBtn = document.getElementById('create-new-survey-btn');
+        
+        const exportCsvBtn = document.getElementById('export-csv-btn');
+        const exportJsonBtn = document.getElementById('export-json-btn');
+        
+        // 初始化
+        function init() {
+            // 绑定事件
+            bindEvents();
+            
+            // 从本地存储加载问卷
+            loadSurveysFromLocalStorage();
+        }
+        
+        // 绑定事件
+        function bindEvents() {
+            // 移动端菜单
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 标签页切换
+            document.querySelectorAll('[data-tab]').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabId = tab.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            
+            // 创建问卷按钮
+            createSurveyBtn.addEventListener('click', () => {
+                welcomeSection.classList.add('hidden');
+                editorSection.classList.remove('hidden');
+                mobileMenu.classList.add('hidden');
+            });
+            
+            // 加载问卷按钮
+            loadSurveyBtn.addEventListener('click', () => {
+                showLoadModal();
+            });
+            
+            // 保存问卷按钮
+            saveBtn.addEventListener('click', () => {
+                saveSurvey();
+            });
+            
+            // 发布问卷按钮
+            publishBtn.addEventListener('click', () => {
+                publishSurvey();
+            });
+            
+            // 问卷设置输入
+            surveyTitleInput.addEventListener('input', () => {
+                currentSurvey.title = surveyTitleInput.value;
+            });
+            
+            surveyDescriptionInput.addEventListener('input', () => {
+                currentSurvey.description = surveyDescriptionInput.value;
+            });
+            
+            randomizeQuestionsInput.addEventListener('change', () => {
+                currentSurvey.settings.randomizeQuestions = randomizeQuestionsInput.checked;
+            });
+            
+            showProgressInput.addEventListener('change', () => {
+                currentSurvey.settings.showProgress = showProgressInput.checked;
+            });
+            
+            // 添加问题按钮
+            document.querySelectorAll('.add-question-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.getAttribute('data-type');
+                    addQuestion(type);
+                });
+            });
+            
+            // 问题属性输入
+            questionTextInput.addEventListener('input', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question) {
+                        question.text = questionTextInput.value;
+                        updateQuestionCard(currentQuestionId);
+                    }
+                }
+            });
+            
+            questionDescriptionInput.addEventListener('input', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question) {
+                        question.description = questionDescriptionInput.value;
+                        updateQuestionCard(currentQuestionId);
+                    }
+                }
+            });
+            
+            questionRequiredInput.addEventListener('change', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question) {
+                        question.required = questionRequiredInput.checked;
+                        updateQuestionCard(currentQuestionId);
+                    }
+                }
+            });
+            
+            // 添加选项按钮
+            addOptionBtn.addEventListener('click', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question && (question.type === 'singleChoice' || question.type === 'multipleChoice')) {
+                        const newOption = {
+                            id: generateUniqueId(),
+                            text: `选项 ${question.options.length + 1}`
+                        };
+                        question.options.push(newOption);
+                        renderOptions(question);
+                    }
+                }
+            });
+            
+            // 评分设置输入
+            ratingMinInput.addEventListener('change', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question && question.type === 'rating') {
+                        question.min = parseInt(ratingMinInput.value);
+                        updateQuestionCard(currentQuestionId);
+                    }
+                }
+            });
+            
+            ratingMaxInput.addEventListener('change', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question && question.type === 'rating') {
+                        question.max = parseInt(ratingMaxInput.value);
+                        updateQuestionCard(currentQuestionId);
+                    }
+                }
+            });
+            
+            ratingMinLabelInput.addEventListener('input', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question && question.type === 'rating') {
+                        question.minLabel = ratingMinLabelInput.value;
+                        updateQuestionCard(currentQuestionId);
+                    }
+                }
+            });
+            
+            ratingMaxLabelInput.addEventListener('input', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question && question.type === 'rating') {
+                        question.maxLabel = ratingMaxLabelInput.value;
+                        updateQuestionCard(currentQuestionId);
+                    }
+                }
+            });
+            
+            // 复制问题按钮
+            duplicateQuestionBtn.addEventListener('click', () => {
+                if (currentQuestionId) {
+                    const question = getQuestionById(currentQuestionId);
+                    if (question) {
+                        const duplicatedQuestion = JSON.parse(JSON.stringify(question));
+                        duplicatedQuestion.id = generateUniqueId();
+                        currentSurvey.questions.push(duplicatedQuestion);
+                        renderQuestions();
+                        selectQuestion(duplicatedQuestion.id);
+                    }
+                }
+            });
+            
+            // 删除问题按钮
+            deleteQuestionBtn.addEventListener('click', () => {
+                if (currentQuestionId && confirm('确定要删除这个问题吗？')) {
+                    currentSurvey.questions = currentSurvey.questions.filter(q => q.id !== currentQuestionId);
+                    currentQuestionId = null;
+                    questionProperties.classList.add('hidden');
+                    renderQuestions();
+                }
+            });
+            
+            // 预览导航按钮
+            prevQuestionBtn.addEventListener('click', () => {
+                if (previewCurrentQuestionIndex > 0) {
+                    previewCurrentQuestionIndex--;
+                    renderPreview();
+                }
+            });
+            
+            nextQuestionBtn.addEventListener('click', () => {
+                if (previewCurrentQuestionIndex < currentSurvey.questions.length - 1) {
+                    previewCurrentQuestionIndex++;
+                    renderPreview();
+                } else if (currentSurvey.questions.length > 0) {
+                    alert('问卷预览完成！');
+                    switchTab('editor');
+                }
+            });
+            
+            // 设置页面输入
+            settingsTitleInput.addEventListener('input', () => {
+                currentSurvey.title = settingsTitleInput.value;
+                surveyTitleInput.value = settingsTitleInput.value;
+            });
+            
+            settingsDescriptionInput.addEventListener('input', () => {
+                currentSurvey.description = settingsDescriptionInput.value;
+                surveyDescriptionInput.value = settingsDescriptionInput.value;
+            });
+            
+            settingsRandomizeInput.addEventListener('change', () => {
+                currentSurvey.settings.randomizeQuestions = settingsRandomizeInput.checked;
+                randomizeQuestionsInput.checked = settingsRandomizeInput.checked;
+            });
+            
+            settingsProgressInput.addEventListener('change', () => {
+                currentSurvey.settings.showProgress = settingsProgressInput.checked;
+                showProgressInput.checked = settingsProgressInput.checked;
+            });
+            
+            settingsExpirySelect.addEventListener('change', () => {
+                if (settingsExpirySelect.value === 'custom') {
+                    settingsExpiryDateInput.classList.remove('hidden');
+                } else {
+                    settingsExpiryDateInput.classList.add('hidden');
+                    currentSurvey.settings.expiresIn = settingsExpirySelect.value === 'never' ? null : parseInt(settingsExpirySelect.value);
+                }
+            });
+            
+            settingsExpiryDateInput.addEventListener('change', () => {
+                currentSurvey.settings.expiryDate = settingsExpiryDateInput.value;
+            });
+            
+            // 保存设置按钮
+            saveSettingsBtn.addEventListener('click', () => {
+                saveSurvey();
+                alert('设置已保存！');
+            });
+            
+            // 复制链接按钮
+            copyUrlBtn.addEventListener('click', () => {
+                copyToClipboard(surveyUrlInput.value);
+                alert('链接已复制到剪贴板！');
+            });
+            
+            // 复制嵌入代码按钮
+            copyCodeBtn.addEventListener('click', () => {
+                copyToClipboard(embedCodeInput.value);
+                alert('嵌入代码已复制到剪贴板！');
+            });
+            
+            // 发布弹窗按钮
+            modalCopyUrlBtn.addEventListener('click', () => {
+                copyToClipboard(modalSurveyUrlInput.value);
+                alert('链接已复制到剪贴板！');
+            });
+            
+            shareBtn.addEventListener('click', () => {
+                publishModal.classList.add('hidden');
+                showShareModal();
+            });
+            
+            viewResponsesBtn.addEventListener('click', () => {
+                publishModal.classList.add('hidden');
+                switchTab('analytics');
+            });
+            
+            // 分享弹窗按钮
+            closeShareModal.addEventListener('click', () => {
+                shareModal.classList.add('hidden');
+            });
+            
+            shareCopyUrlBtn.addEventListener('click', () => {
+                copyToClipboard(shareSurveyUrlInput.value);
+                alert('链接已复制到剪贴板！');
+            });
+            
+            shareCopyCodeBtn.addEventListener('click', () => {
+                copyToClipboard(shareEmbedCodeInput.value);
+                alert('嵌入代码已复制到剪贴板！');
+            });
+            
+            // 加载弹窗按钮
+            closeLoadModal.addEventListener('click', () => {
+                loadModal.classList.add('hidden');
+            });
+            
+            createNewSurveyBtn.addEventListener('click', () => {
+                loadModal.classList.add('hidden');
+                resetSurvey();
+                welcomeSection.classList.add('hidden');
+                editorSection.classList.remove('hidden');
+            });
+            
+            // 导出按钮
+            exportCsvBtn.addEventListener('click', () => {
+                exportSurveyData('csv');
+            });
+            
+            exportJsonBtn.addEventListener('click', () => {
+                exportSurveyData('json');
+            });
+            
+            // 拖拽功能
+            questionsContainer.addEventListener('mousedown', handleDragStart);
+            questionsContainer.addEventListener('mousemove', handleDragMove);
+            questionsContainer.addEventListener('mouseup', handleDragEnd);
+            questionsContainer.addEventListener('mouseleave', handleDragEnd);
+        }
+        
+        // 切换标签页
+        function switchTab(tabId) {
+            // 隐藏所有标签页
+            editorSection.classList.add('hidden');
+            previewSection.classList.add('hidden');
+            analyticsSection.classList.add('hidden');
+            settingsSection.classList.add('hidden');
+            
+            // 移除所有标签页的活动状态
+            document.querySelectorAll('[data-tab]').forEach(tab => {
+                tab.classList.remove('tab-active');
+                tab.classList.add('tab-inactive');
+            });
+            
+            // 显示选中的标签页
+            switch (tabId) {
+                case 'editor':
+                    editorSection.classList.remove('hidden');
+                    break;
+                case 'preview':
+                    previewSection.classList.remove('hidden');
+                    renderPreview();
+                    break;
+                case 'analytics':
+                    analyticsSection.classList.remove('hidden');
+                    renderAnalytics();
+                    break;
+                case 'settings':
+                    settingsSection.classList.remove('hidden');
+                    updateSettingsForm();
+                    break;
+            }
+            
+            // 设置选中标签的活动状态
+            document.querySelector(`[data-tab="${tabId}"]`).classList.remove('tab-inactive');
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('tab-active');
+            
+            // 隐藏移动端菜单
+            mobileMenu.classList.add('hidden');
+        }
+        
+        // 生成唯一ID
+        function generateUniqueId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+        
+        // 添加问题
+        function addQuestion(type) {
+            const newQuestion = {
+                id: generateUniqueId(),
+                type: type,
+                text: `问题 ${currentSurvey.questions.length + 1}`,
+                description: '',
+                required: false
+            };
+            
+            // 根据题型添加特定属性
+            switch (type) {
+                case 'singleChoice':
+                case 'multipleChoice':
+                    newQuestion.options = [
+                        { id: generateUniqueId(), text: '选项 1' },
+                        { id: generateUniqueId(), text: '选项 2' }
+                    ];
+                    break;
+                case 'rating':
+                    newQuestion.min = 1;
+                    newQuestion.max = 5;
+                    newQuestion.minLabel = '';
+                    newQuestion.maxLabel = '';
+                    break;
+            }
+            
+            currentSurvey.questions.push(newQuestion);
+            renderQuestions();
+            selectQuestion(newQuestion.id);
+        }
+        
+        // 获取问题对象
+        function getQuestionById(id) {
+            return currentSurvey.questions.find(q => q.id === id);
+        }
+        
+        // 渲染问题列表
+        function renderQuestions() {
+            if (currentSurvey.questions.length === 0) {
+                questionsContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-12">
+                        <i class="fa fa-question-circle text-4xl mb-4"></i>
+                        <p>点击左侧添加问题，或从模板开始</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            questionsContainer.innerHTML = '';
+            
+            currentSurvey.questions.forEach((question, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card';
+                questionCard.setAttribute('data-id', question.id);
+                
+                let questionTypeIcon = '';
+                switch (question.type) {
+                    case 'singleChoice':
+                        questionTypeIcon = '<i class="fa fa-dot-circle-o text-primary"></i>';
+                        break;
+                    case 'multipleChoice':
+                        questionTypeIcon = '<i class="fa fa-check-square-o text-primary"></i>';
+                        break;
+                    case 'text':
+                        questionTypeIcon = '<i class="fa fa-font text-primary"></i>';
+                        break;
+                    case 'rating':
+                        questionTypeIcon = '<i class="fa fa-star text-primary"></i>';
+                        break;
+                    case 'date':
+                        questionTypeIcon = '<i class="fa fa-calendar text-primary"></i>';
+                        break;
+                }
+                
+                let questionContent = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start gap-3 flex-1">
+                            <div class="mt-1">${questionTypeIcon}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-medium text-gray-800">${question.text}</h4>
+                                    ${question.required ? '<span class="text-danger">*</span>' : ''}
+                                </div>
+                                ${question.description ? `<p class="text-sm text-gray-500 mt-1">${question.description}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-gray-400 hover:text-gray-600 cursor-move drag-handle">
+                            <i class="fa fa-bars"></i>
+                        </div>
+                    </div>
+                `;
+                
+                // 添加题型特定内容
+                switch (question.type) {
+                    case 'singleChoice':
+                    case 'multipleChoice':
+                        questionContent += `
+                            <div class="mt-3 ml-8 space-y-1">
+                                ${question.options.slice(0, 3).map(option => `
+                                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                                        ${question.type === 'singleChoice' ? '<i class="fa fa-circle-o"></i>' : '<i class="fa fa-square-o"></i>'}
+                                        <span>${option.text}</span>
+                                    </div>
+                                `).join('')}
+                                ${question.options.length > 3 ? `<div class="text-xs text-gray-500">... 还有 ${question.options.length - 3} 个选项</div>` : ''}
+                            </div>
+                        `;
+                        break;
+                    case 'rating':
+                        questionContent += `
+                            <div class="mt-3 ml-8">
+                                <div class="flex items-center gap-1 text-sm text-gray-600">
+                                    ${Array.from({ length: question.max }).map((_, i) => `<i class="fa fa-star-o"></i>`).join('')}
+                                </div>
+                                ${question.minLabel || question.maxLabel ? `
+                                    <div class="flex justify-between mt-1">
+                                        <span class="text-xs text-gray-500">${question.minLabel || ''}</span>
+                                        <span class="text-xs text-gray-500">${question.maxLabel || ''}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                        break;
+                    case 'text':
+                        questionContent += `
+                            <div class="mt-3 ml-8">
+                                <div class="w-full h-8 bg-gray-100 rounded text-sm text-gray-500 flex items-center px-3">
+                                    输入文本回答...
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'date':
+                        questionContent += `
+                            <div class="mt-3 ml-8">
+                                <div class="w-40 h-8 bg-gray-100 rounded text-sm text-gray-500 flex items-center px-3">
+                                    选择日期...
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+                
+                questionCard.innerHTML = questionContent;
+                
+                // 添加点击事件
+                questionCard.addEventListener('click', (e) => {
+                    // 如果点击的是拖拽手柄，不选择问题
+                    if (!e.target.closest('.drag-handle')) {
+                        selectQuestion(question.id);
+                    }
+                });
+                
+                questionsContainer.appendChild(questionCard);
+            });
+        }
+        
+        // 选择问题
+        function selectQuestion(id) {
+            currentQuestionId = id;
+            
+            // 更新问题卡片样式
+            document.querySelectorAll('.question-card').forEach(card => {
+                if (card.getAttribute('data-id') === id) {
+                    card.classList.add('border-secondary');
+                    card.classList.add('bg-blue-50');
+                } else {
+                    card.classList.remove('border-secondary');
+                    card.classList.remove('bg-blue-50');
+                }
+            });
+            
+            const question = getQuestionById(id);
+            if (question) {
+                // 显示问题属性面板
+                questionProperties.classList.remove('hidden');
+                
+                // 填充问题属性
+                questionTextInput.value = question.text;
+                questionDescriptionInput.value = question.description || '';
+                questionRequiredInput.checked = question.required;
+                
+                // 隐藏所有特定题型设置
+                optionsContainer.classList.add('hidden');
+                ratingContainer.classList.add('hidden');
+                
+                // 显示当前题型的设置
+                switch (question.type) {
+                    case 'singleChoice':
+                    case 'multipleChoice':
+                        optionsContainer.classList.remove('hidden');
+                        renderOptions(question);
+                        break;
+                    case 'rating':
+                        ratingContainer.classList.remove('hidden');
+                        ratingMinInput.value = question.min;
+                        ratingMaxInput.value = question.max;
+                        ratingMinLabelInput.value = question.minLabel || '';
+                        ratingMaxLabelInput.value = question.maxLabel || '';
+                        break;
+                }
+            }
+        }
+        
+        // 渲染选项
+        function renderOptions(question) {
+            optionsList.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionItem = document.createElement('div');
+                optionItem.className = 'flex items-center gap-2';
+                optionItem.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+                        ${index + 1}
+                    </div>
+                    <input type="text" class="option-text input-field text-sm" data-id="${option.id}" value="${option.text}">
+                    <button class="delete-option-btn text-gray-400 hover:text-danger" data-id="${option.id}">
+                        <i class="fa fa-times"></i>
+                    </button>
+                `;
+                optionsList.appendChild(optionItem);
+            });
+            
+            // 绑定选项文本输入事件
+            document.querySelectorAll('.option-text').forEach(input => {
+                input.addEventListener('input', () => {
+                    const optionId = input.getAttribute('data-id');
+                    const option = question.options.find(o => o.id === optionId);
+                    if (option) {
+                        option.text = input.value;
+                        updateQuestionCard(question.id);
+                    }
+                });
+            });
+            
+            // 绑定删除选项按钮事件
+            document.querySelectorAll('.delete-option-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const optionId = btn.getAttribute('data-id');
+                    question.options = question.options.filter(o => o.id !== optionId);
+                    renderOptions(question);
+                    updateQuestionCard(question.id);
+                });
+            });
+        }
+        
+        // 更新问题卡片
+        function updateQuestionCard(id) {
+            const question = getQuestionById(id);
+            if (question) {
+                const questionCard = document.querySelector(`.question-card[data-id="${id}"]`);
+                if (questionCard) {
+                    // 更新问题文本
+                    const questionTextElement = questionCard.querySelector('h4');
+                    if (questionTextElement) {
+                        questionTextElement.textContent = question.text;
+                    }
+                    
+                    // 更新问题描述
+                    const questionDescElement = questionCard.querySelector('p.text-sm.text-gray-500');
+                    if (question.description) {
+                        if (questionDescElement) {
+                            questionDescElement.textContent = question.description;
+                        } else {
+                            const descContainer = questionCard.querySelector('.flex-1');
+                            if (descContainer) {
+                                const newDescElement = document.createElement('p');
+                                newDescElement.className = 'text-sm text-gray-500 mt-1';
+                                newDescElement.textContent = question.description;
+                                descContainer.appendChild(newDescElement);
+                            }
+                        }
+                    } else if (questionDescElement) {
+                        questionDescElement.remove();
+                    }
+                    
+                    // 更新必填标记
+                    const requiredElement = questionCard.querySelector('span.text-danger');
+                    if (question.required) {
+                        if (!requiredElement) {
+                            const textContainer = questionCard.querySelector('.flex.items-center.gap-2');
+                            if (textContainer) {
+                                const newRequiredElement = document.createElement('span');
+                                newRequiredElement.className = 'text-danger';
+                                newRequiredElement.textContent = '*';
+                                textContainer.appendChild(newRequiredElement);
+                            }
+                        }
+                    } else if (requiredElement) {
+                        requiredElement.remove();
+                    }
+                }
+            }
+        }
+        
+        // 渲染预览
+        function renderPreview() {
+            previewTitle.textContent = currentSurvey.title || '问卷标题';
+            previewDescription.textContent = currentSurvey.description || '问卷描述将显示在这里...';
+            
+            if (currentSurvey.questions.length === 0) {
+                previewQuestions.innerHTML = `
+                    <div class="text-center text-gray-500 py-12">
+                        <i class="fa fa-file-text-o text-4xl mb-4"></i>
+                        <p>请先在编辑器中添加问题</p>
+                    </div>
+                `;
+                previewProgress.style.width = '0%';
+                prevQuestionBtn.disabled = true;
+                prevQuestionBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                nextQuestionBtn.textContent = '下一题';
+                nextQuestionBtn.innerHTML = '<span>下一题</span><i class="fa fa-arrow-right"></i>';
+                return;
+            }
+            
+            // 更新进度条
+            const progressPercentage = ((previewCurrentQuestionIndex + 1) / currentSurvey.questions.length) * 100;
+            previewProgress.style.width = `${progressPercentage}%`;
+            
+            // 更新导航按钮状态
+            prevQuestionBtn.disabled = previewCurrentQuestionIndex === 0;
+            prevQuestionBtn.classList.toggle('opacity-50', previewCurrentQuestionIndex === 0);
+            prevQuestionBtn.classList.toggle('cursor-not-allowed', previewCurrentQuestionIndex === 0);
+            
+            // 更新下一题按钮文本
+            if (previewCurrentQuestionIndex === currentSurvey.questions.length - 1) {
+                nextQuestionBtn.innerHTML = '<span>提交</span><i class="fa fa-check"></i>';
+            } else {
+                nextQuestionBtn.innerHTML = '<span>下一题</span><i class="fa fa-arrow-right"></i>';
+            }
+            
+            // 渲染当前问题
+            const currentQuestion = currentSurvey.questions[previewCurrentQuestionIndex];
+            previewQuestions.innerHTML = '';
+            
+            const questionElement = document.createElement('div');
+            questionElement.className = 'mb-6';
+            
+            let questionTypeIcon = '';
+            switch (currentQuestion.type) {
+                case 'singleChoice':
+                    questionTypeIcon = '<i class="fa fa-dot-circle-o text-primary"></i>';
+                    break;
+                case 'multipleChoice':
+                    questionTypeIcon = '<i class="fa fa-check-square-o text-primary"></i>';
+                    break;
+                case 'text':
+                    questionTypeIcon = '<i class="fa fa-font text-primary"></i>';
+                    break;
+                case 'rating':
+                    questionTypeIcon = '<i class="fa fa-star text-primary"></i>';
+                    break;
+                case 'date':
+                    questionTypeIcon = '<i class="fa fa-calendar text-primary"></i>';
+                    break;
+            }
+            
+            let questionContent = `
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="mt-1">${questionTypeIcon}</div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-medium text-gray-800">${currentQuestion.text}</h3>
+                            ${currentQuestion.required ? '<span class="text-danger">*</span>' : ''}
+                        </div>
+                        ${currentQuestion.description ? `<p class="text-sm text-gray-600 mt-1">${currentQuestion.description}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // 添加题型特定内容
+            switch (currentQuestion.type) {
+                case 'singleChoice':
+                    questionContent += `
+                        <div class="ml-8 space-y-3">
+                            ${currentQuestion.options.map(option => `
+                                <div class="flex items-center gap-2">
+                                    <input type="radio" id="preview-option-${option.id}" name="preview-question-${currentQuestion.id}" class="w-4 h-4 text-primary focus:ring-primary">
+                                    <label for="preview-option-${option.id}" class="text-gray-700">${option.text}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+                case 'multipleChoice':
+                    questionContent += `
+                        <div class="ml-8 space-y-3">
+                            ${currentQuestion.options.map(option => `
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="preview-option-${option.id}" class="w-4 h-4 text-primary focus:ring-primary">
+                                    <label for="preview-option-${option.id}" class="text-gray-700">${option.text}</label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+                case 'text':
+                    questionContent += `
+                        <div class="ml-8">
+                            <textarea class="input-field" rows="3" placeholder="请输入回答..."></textarea>
+                        </div>
+                    `;
+                    break;
+                case 'rating':
+                    questionContent += `
+                        <div class="ml-8">
+                            <div class="flex items-center gap-3 mb-3">
+                                ${Array.from({ length: currentQuestion.max }).map((_, i) => `
+                                    <label class="flex flex-col items-center cursor-pointer">
+                                        <input type="radio" name="preview-rating-${currentQuestion.id}" value="${i + 1}" class="sr-only peer">
+                                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 peer-checked:bg-primary peer-checked:text-white transition-all-300">
+                                            <i class="fa fa-star"></i>
+                                        </div>
+                                        <span class="text-xs mt-1 text-gray-500">${i + 1}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                            ${currentQuestion.minLabel || currentQuestion.maxLabel ? `
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-gray-500">${currentQuestion.minLabel || ''}</span>
+                                    <span class="text-sm text-gray-500">${currentQuestion.maxLabel || ''}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    break;
+                case 'date':
+                    questionContent += `
+                        <div class="ml-8">
+                            <input type="date" class="input-field">
+                        </div>
+                    `;
+                    break;
+            }
+            
+            questionElement.innerHTML = questionContent;
+            previewQuestions.appendChild(questionElement);
+        }
+        
+        // 更新设置表单
+        function updateSettingsForm() {
+            settingsTitleInput.value = currentSurvey.title || '';
+            settingsDescriptionInput.value = currentSurvey.description || '';
+            settingsRandomizeInput.checked = currentSurvey.settings.randomizeQuestions || false;
+            settingsProgressInput.checked = currentSurvey.settings.showProgress || false;
+            
+            // 设置有效期
+            if (currentSurvey.settings.expiryDate) {
+                settingsExpirySelect.value = 'custom';
+                settingsExpiryDateInput.value = currentSurvey.settings.expiryDate;
+                settingsExpiryDateInput.classList.remove('hidden');
+            } else if (currentSurvey.settings.expiresIn === null) {
+                settingsExpirySelect.value = 'never';
+                settingsExpiryDateInput.classList.add('hidden');
+            } else {
+                settingsExpirySelect.value = currentSurvey.settings.expiresIn.toString() || '30';
+                settingsExpiryDateInput.classList.add('hidden');
+            }
+            
+            // 生成问卷链接和嵌入代码
+            const surveyId = currentSurvey.id || generateUniqueId();
+            const surveyUrl = `https://surveyflow.example.com/s/${surveyId}`;
+            const embedCode = `<iframe src="${surveyUrl}" width="100%" height="600"></iframe>`;
+            
+            surveyUrlInput.value = surveyUrl;
+            embedCodeInput.value = embedCode;
+        }
+        
+        // 渲染数据分析
+        function renderAnalytics() {
+            analyticsTitle.textContent = currentSurvey.title || '问卷标题';
+            
+            // 模拟数据
+            const mockResponses = currentSurvey.responses || generateMockResponses();
+            
+            if (mockResponses.length === 0) {
+                noDataMessage.classList.remove('hidden');
+                analyticsContent.classList.add('hidden');
+                return;
+            }
+            
+            noDataMessage.classList.add('hidden');
+            analyticsContent.classList.remove('hidden');
+            
+            responseCount.textContent = mockResponses.length;
+            
+            // 清空图表容器
+            chartsContainer.innerHTML = '';
+            
+            // 为每个问题生成图表
+            currentSurvey.questions.forEach((question, index) => {
+                if (question.type === 'singleChoice' || question.type === 'multipleChoice' || question.type === 'rating') {
+                    const chartContainer = document.createElement('div');
+                    chartContainer.className = 'mb-8';
+                    
+                    const chartTitle = document.createElement('h3');
+                    chartTitle.className = 'text-lg font-semibold text-gray-700 mb-4';
+                    chartTitle.textContent = `${index + 1}. ${question.text}`;
+                    chartContainer.appendChild(chartTitle);
+                    
+                    const chartCanvas = document.createElement('canvas');
+                    chartCanvas.id = `chart-${question.id}`;
+                    chartCanvas.className = 'w-full';
+                    chartContainer.appendChild(chartCanvas);
+                    
+                    chartsContainer.appendChild(chartContainer);
+                    
+                    // 生成图表
+                    generateChart(question, mockResponses);
+                } else if (question.type === 'text') {
+                    // 文本回答展示
+                    const textContainer = document.createElement('div');
+                    textContainer.className = 'mb-8';
+                    
+                    const textTitle = document.createElement('h3');
+                    textTitle.className = 'text-lg font-semibold text-gray-700 mb-4';
+                    textTitle.textContent = `${index + 1}. ${question.text}`;
+                    textContainer.appendChild(textTitle);
+                    
+                    const textResponses = document.createElement('div');
+                    textResponses.className = 'space-y-3';
+                    
+                    // 获取文本回答
+                    const answers = mockResponses
+                        .map(response => {
+                            const answer = response.answers.find(a => a.questionId === question.id);
+                            return answer ? answer.value : null;
+                        })
+                        .filter(Boolean);
+                    
+                    if (answers.length === 0) {
+                        textResponses.innerHTML = '<p class="text-gray-500">暂无回答</p>';
+                    } else {
+                        answers.forEach((answer, i) => {
+                            const answerElement = document.createElement('div');
+                            answerElement.className = 'bg-gray-50 p-4 rounded-lg border border-gray-100';
+                            answerElement.innerHTML = `
+                                <div class="flex justify-between items-start">
+                                    <p class="text-gray-700">${answer}</p>
+                                    <span class="text-xs text-gray-500">回答 ${i + 1}</span>
+                                </div>
+                            `;
+                            textResponses.appendChild(answerElement);
+                        });
+                    }
+                    
+                    textContainer.appendChild(textResponses);
+                    chartsContainer.appendChild(textContainer);
+                }
+            });
+        }
+        
+        // 生成图表
+        function generateChart(question, responses) {
+            const ctx = document.getElementById(`chart-${question.id}`).getContext('2d');
+            
+            let chartType = 'bar';
+            let labels = [];
+            let data = [];
+            
+            if (question.type === 'singleChoice' || question.type === 'multipleChoice') {
+                // 选择题数据
+                labels = question.options.map(option => option.text);
+                data = new Array(labels.length).fill(0);
+                
+                responses.forEach(response => {
+                    const answer = response.answers.find(a => a.questionId === question.id);
+                    if (answer) {
+                        if (question.type === 'singleChoice') {
+                            // 单选题
+                            const optionIndex = question.options.findIndex(o => o.id === answer.value);
+                            if (optionIndex !== -1) {
+                                data[optionIndex]++;
+                            }
+                        } else {
+                            // 多选题
+                            answer.value.forEach(optionId => {
+                                const optionIndex = question.options.findIndex(o => o.id === optionId);
+                                if (optionIndex !== -1) {
+                                    data[optionIndex]++;
+                                }
+                            });
+                        }
+                    }
+                });
+                
+                chartType = question.type === 'singleChoice' ? 'pie' : 'bar';
+            } else if (question.type === 'rating') {
+                // 评分题数据
+                const ratingRange = Array.from({ length: question.max - question.min + 1 }, (_, i) => question.min + i);
+                labels = ratingRange.map(r => r.toString());
+                data = new Array(labels.length).fill(0);
+                
+                responses.forEach(response => {
+                    const answer = response.answers.find(a => a.questionId === question.id);
+                    if (answer) {
+                        const rating = parseInt(answer.value);
+                        const ratingIndex = rating - question.min;
+                        if (ratingIndex >= 0 && ratingIndex < data.length) {
+                            data[ratingIndex]++;
+                        }
+                    }
+                });
+            }
+            
+            // 创建图表
+            new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '回答数量',
+                        data: data,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(139, 92, 246, 0.7)',
+                            'rgba(236, 72, 153, 0.7)',
+                            'rgba(14, 165, 233, 0.7)',
+                            'rgba(20, 184, 166, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(236, 72, 153, 1)',
+                            'rgba(14, 165, 233, 1)',
+                            'rgba(20, 184, 166, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: chartType === 'pie' ? {} : {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: chartType === 'pie' ? 'right' : 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 生成模拟回答数据
+        function generateMockResponses() {
+            const responses = [];
+            const responseCount = Math.floor(Math.random() * 50) + 10; // 10-60个回答
+            
+            for (let i = 0; i < responseCount; i++) {
+                const response = {
+                    id: generateUniqueId(),
+                    questionnaireId: currentSurvey.id,
+                    submitted: new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000)).toISOString(),
+                    answers: [],
+                    metadata: {
+                        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+                        completionTime: Math.floor(Math.random() * 300) + 60 // 1-5分钟
+                    }
+                };
+                
+                // 为每个问题生成随机回答
+                currentSurvey.questions.forEach(question => {
+                    const answer = {
+                        questionId: question.id,
+                        value: null
+                    };
+                    
+                    switch (question.type) {
+                        case 'singleChoice':
+                            // 随机选择一个选项
+                            const singleChoiceIndex = Math.floor(Math.random() * question.options.length);
+                            answer.value = question.options[singleChoiceIndex].id;
+                            break;
+                        case 'multipleChoice':
+                            // 随机选择1-3个选项
+                            const selectedOptions = [];
+                            const optionCount = Math.floor(Math.random() * Math.min(3, question.options.length)) + 1;
+                            
+                            // 创建选项索引数组并洗牌
+                            const optionIndices = Array.from({ length: question.options.length }, (_, i) => i);
+                            for (let j = optionIndices.length - 1; j > 0; j--) {
+                                const k = Math.floor(Math.random() * (j + 1));
+                                [optionIndices[j], optionIndices[k]] = [optionIndices[k], optionIndices[j]];
+                            }
+                            
+                            // 选择前optionCount个选项
+                            for (let j = 0; j < optionCount; j++) {
+                                selectedOptions.push(question.options[optionIndices[j]].id);
+                            }
+                            
+                            answer.value = selectedOptions;
+                            break;
+                        case 'text':
+                            // 随机生成文本回答
+                            const textResponses = [
+                                '这个产品非常好用，我很满意。',
+                                '功能还不错，但有些地方需要改进。',
+                                '体验一般，希望能增加更多自定义选项。',
+                                '非常失望，与宣传不符。',
+                                '整体来说很好，推荐给大家使用。'
+                            ];
+                            answer.value = textResponses[Math.floor(Math.random() * textResponses.length)];
+                            break;
+                        case 'rating':
+                            // 随机生成评分
+                            answer.value = (Math.floor(Math.random() * (question.max - question.min + 1)) + question.min).toString();
+                            break;
+                        case 'date':
+                            // 随机生成日期
+                            const date = new Date();
+                            date.setDate(date.getDate() - Math.floor(Math.random() * 365));
+                            answer.value = date.toISOString().split('T')[0];
+                            break;
+                    }
+                    
+                    response.answers.push(answer);
+                });
+                
+                responses.push(response);
+            }
+            
+            // 保存到当前问卷
+            currentSurvey.responses = responses;
+            
+            return responses;
+        }
+        
+        // 保存问卷
+        function saveSurvey() {
+            currentSurvey.updated = new Date().toISOString();
+            
+            // 获取保存的问卷列表
+            let savedSurveys = JSON.parse(localStorage.getItem('surveyflow_surveys') || '[]');
+            
+            // 检查是否已存在相同ID的问卷
+            const existingIndex = savedSurveys.findIndex(s => s.id === currentSurvey.id);
+            
+            if (existingIndex !== -1) {
+                // 更新现有问卷
+                savedSurveys[existingIndex] = currentSurvey;
+            } else {
+                // 添加新问卷
+                savedSurveys.push(currentSurvey);
+            }
+            
+            // 保存到本地存储
+            localStorage.setItem('surveyflow_surveys', JSON.stringify(savedSurveys));
+            
+            alert('问卷已保存！');
+        }
+        
+        // 发布问卷
+        function publishSurvey() {
+            // 检查是否有问题
+            if (currentSurvey.questions.length === 0) {
+                alert('请先添加问题再发布问卷！');
+                return;
+            }
+            
+            // 保存问卷
+            saveSurvey();
+            
+            // 生成问卷链接
+            const surveyId = currentSurvey.id || generateUniqueId();
+            const surveyUrl = `https://surveyflow.example.com/s/${surveyId}`;
+            
+            // 更新发布弹窗
+            modalSurveyUrlInput.value = surveyUrl;
+            
+            // 显示发布成功弹窗
+            publishModal.classList.remove('hidden');
+        }
+        
+        // 显示分享弹窗
+        function showShareModal() {
+            const surveyId = currentSurvey.id || generateUniqueId();
+            const surveyUrl = `https://surveyflow.example.com/s/${surveyId}`;
+            const embedCode = `<iframe src="${surveyUrl}" width="100%" height="600"></iframe>`;
+            
+            shareSurveyUrlInput.value = surveyUrl;
+            shareEmbedCodeInput.value = embedCode;
+            
+            shareModal.classList.remove('hidden');
+        }
+        
+        // 显示加载问卷弹窗
+        function showLoadModal() {
+            // 获取保存的问卷列表
+            const savedSurveys = JSON.parse(localStorage.getItem('surveyflow_surveys') || '[]');
+            
+            if (savedSurveys.length === 0) {
+                noSurveysMessage.classList.remove('hidden');
+                surveysList.classList.add('hidden');
+            } else {
+                noSurveysMessage.classList.add('hidden');
+                surveysList.classList.remove('hidden');
+                
+                // 清空问卷列表
+                surveysList.innerHTML = '';
+                
+                // 添加问卷到列表
+                savedSurveys.forEach(survey => {
+                    const surveyItem = document.createElement('div');
+                    surveyItem.className = 'bg-gray-50 hover:bg-gray-100 p-4 rounded-lg transition-all-300 cursor-pointer';
+                    
+                    const updatedDate = new Date(survey.updated);
+                    const formattedDate = `${updatedDate.getFullYear()}-${String(updatedDate.getMonth() + 1).padStart(2, '0')}-${String(updatedDate.getDate()).padStart(2, '0')}`;
+                    
+                    surveyItem.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium text-gray-800">${survey.title || '未命名问卷'}</h4>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    ${survey.questions.length} 个问题 • 更新于 ${formattedDate}
+                                </p>
+                            </div>
+                            <div class="text-primary">
+                                <i class="fa fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 添加点击事件
+                    surveyItem.addEventListener('click', () => {
+                        // 加载选中的问卷
+                        currentSurvey = survey;
+                        currentQuestionId = null;
+                        questionProperties.classList.add('hidden');
+                        
+                        // 更新编辑器表单
+                        surveyTitleInput.value = currentSurvey.title || '';
+                        surveyDescriptionInput.value = currentSurvey.description || '';
+                        randomizeQuestionsInput.checked = currentSurvey.settings.randomizeQuestions || false;
+                        showProgressInput.checked = currentSurvey.settings.showProgress || false;
+                        
+                        // 渲染问题列表
+                        renderQuestions();
+                        
+                        // 关闭弹窗
+                        loadModal.classList.add('hidden');
+                        
+                        // 切换到编辑器标签页
+                        welcomeSection.classList.add('hidden');
+                        editorSection.classList.remove('hidden');
+                        switchTab('editor');
+                    });
+                    
+                    surveysList.appendChild(surveyItem);
+                });
+            }
+            
+            loadModal.classList.remove('hidden');
+        }
+        
+        // 从本地存储加载问卷
+        function loadSurveysFromLocalStorage() {
+            // 检查是否有保存的问卷
+            const savedSurveys = JSON.parse(localStorage.getItem('surveyflow_surveys') || '[]');
+            
+            // 如果只有一个问卷，自动加载
+            if (savedSurveys.length === 1) {
+                currentSurvey = savedSurveys[0];
+                
+                // 更新编辑器表单
+                surveyTitleInput.value = currentSurvey.title || '';
+                surveyDescriptionInput.value = currentSurvey.description || '';
+                randomizeQuestionsInput.checked = currentSurvey.settings.randomizeQuestions || false;
+                showProgressInput.checked = currentSurvey.settings.showProgress || false;
+                
+                // 渲染问题列表
+                renderQuestions();
+            }
+        }
+        
+        // 重置问卷
+        function resetSurvey() {
+            currentSurvey = {
+                id: generateUniqueId(),
+                title: '',
+                description: '',
+                created: new Date().toISOString(),
+                updated: new Date().toISOString(),
+                settings: {
+                    randomizeQuestions: false,
+                    showProgress: true,
+                    requireLogin: false,
+                    expiresIn: 30
+                },
+                questions: []
+            };
+            
+            currentQuestionId = null;
+            questionProperties.classList.add('hidden');
+            
+            // 清空编辑器表单
+            surveyTitleInput.value = '';
+            surveyDescriptionInput.value = '';
+            randomizeQuestionsInput.checked = false;
+            showProgressInput.checked = true;
+            
+            // 渲染问题列表
+            renderQuestions();
+        }
+        
+        // 导出问卷数据
+        function exportSurveyData(format) {
+            if (!currentSurvey.responses || currentSurvey.responses.length === 0) {
+                alert('暂无数据可导出！');
+                return;
+            }
+            
+            let data = '';
+            let filename = '';
+            let mimeType = '';
+            
+            if (format === 'csv') {
+                // 生成CSV
+                data = 'data:text/csv;charset=utf-8,';
+                
+                // 添加标题行
+                const headers = ['回答ID', '提交时间', '完成时间(秒)'];
+                currentSurvey.questions.forEach(question => {
+                    headers.push(`问题${currentSurvey.questions.indexOf(question) + 1}: ${question.text}`);
+                });
+                data += headers.join(',') + '\n';
+                
+                // 添加数据行
+                currentSurvey.responses.forEach(response => {
+                    const row = [
+                        response.id,
+                        response.submitted,
+                        response.metadata.completionTime
+                    ];
+                    
+                    currentSurvey.questions.forEach(question => {
+                        const answer = response.answers.find(a => a.questionId === question.id);
+                        if (answer) {
+                            if (question.type === 'multipleChoice') {
+                                // 多选题，用分号分隔多个选项
+                                if (Array.isArray(answer.value)) {
+                                    const optionTexts = answer.value.map(optionId => {
+                                        const option = question.options.find(o => o.id === optionId);
+                                        return option ? option.text : '';
+                                    });
+                                    row.push(`"${optionTexts.join('; ')}"`);
+                                } else {
+                                    row.push('');
+                                }
+                            } else if (question.type === 'singleChoice') {
+                                // 单选题，显示选项文本
+                                const option = question.options.find(o => o.id === answer.value);
+                                row.push(option ? `"${option.text}"` : '');
+                            } else {
+                                // 其他题型，直接显示值
+                                row.push(`"${answer.value}"`);
+                            }
+                        } else {
+                            row.push('');
+                        }
+                    });
+                    
+                    data += row.join(',') + '\n';
+                });
+                
+                filename = `${currentSurvey.title || '问卷'}_数据导出.csv`;
+                mimeType = 'text/csv';
+            } else if (format === 'json') {
+                // 生成JSON
+                const exportData = {
+                    survey: {
+                        id: currentSurvey.id,
+                        title: currentSurvey.title,
+                        description: currentSurvey.description,
+                        created: currentSurvey.created,
+                        updated: currentSurvey.updated,
+                        questions: currentSurvey.questions
+                    },
+                    responses: currentSurvey.responses
+                };
+                
+                data = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2));
+                filename = `${currentSurvey.title || '问卷'}_数据导出.json`;
+                mimeType = 'application/json';
+            }
+            
+            // 创建下载链接
+            const encodedUri = encodeURI(data);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            
+            // 触发下载
+            link.click();
+            
+            // 清理
+            document.body.removeChild(link);
+        }
+        
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        
+        // 拖拽功能
+        function handleDragStart(e) {
+            const dragHandle = e.target.closest('.drag-handle');
+            if (dragHandle) {
+                isDragging = true;
+                draggedElement = dragHandle.closest('.question-card');
+                draggedElement.classList.add('opacity-50');
+                
+                // 存储初始位置
+                draggedElement.style.position = 'absolute';
+                draggedElement.style.zIndex = '1000';
+                const rect = draggedElement.getBoundingClientRect();
+                draggedElement.style.width = `${rect.width}px`;
+                draggedElement.style.left = `${rect.left}px`;
+                draggedElement.style.top = `${rect.top}px`;
+                
+                // 计算鼠标相对于元素的位置
+                const offsetX = e.clientX - rect.left;
+                const offsetY = e.clientY - rect.top;
+                
+                // 存储偏移量
+                draggedElement.dataset.offsetX = offsetX;
+                draggedElement.dataset.offsetY = offsetY;
+            }
+        }
+        
+        function handleDragMove(e) {
+            if (isDragging && draggedElement) {
+                // 更新元素位置
+                const offsetX = parseInt(draggedElement.dataset.offsetX);
+                const offsetY = parseInt(draggedElement.dataset.offsetY);
+                draggedElement.style.left = `${e.clientX - offsetX}px`;
+                draggedElement.style.top = `${e.clientY - offsetY}px`;
+                
+                // 查找放置位置
+                const questionCards = Array.from(document.querySelectorAll('.question-card'));
+                const draggedIndex = questionCards.indexOf(draggedElement);
+                
+                questionCards.forEach((card, index) => {
+                    if (card !== draggedElement) {
+                        const rect = card.getBoundingClientRect();
+                        const centerY = rect.top + rect.height / 2;
+                        
+                        if (e.clientY > centerY) {
+                            // 放置在下方
+                            card.style.marginBottom = '24px';
+                            card.style.marginTop = '0';
+                        } else {
+                            // 放置在上方
+                            card.style.marginTop = '24px';
+                            card.style.marginBottom = '0';
+                        }
+                    }
+                });
+            }
+        }
+        
+        function handleDragEnd() {
+            if (isDragging && draggedElement) {
+                isDragging = false;
+                draggedElement.classList.remove('opacity-50');
+                
+                // 恢复样式
+                document.querySelectorAll('.question-card').forEach(card => {
+                    card.style.marginTop = '';
+                    card.style.marginBottom = '';
+                });
+                
+                // 查找新位置
+                const questionCards = Array.from(document.querySelectorAll('.question-card'));
+                const draggedIndex = questionCards.indexOf(draggedElement);
+                let newIndex = draggedIndex;
+                
+                questionCards.forEach((card, index) => {
+                    if (card !== draggedElement) {
+                        const rect = card.getBoundingClientRect();
+                        const centerY = rect.top + rect.height / 2;
+                        const draggedRect = draggedElement.getBoundingClientRect();
+                        const draggedCenterY = draggedRect.top + draggedRect.height / 2;
+                        
+                        if (draggedCenterY > centerY && index > draggedIndex) {
+                            newIndex = index;
+                        } else if (draggedCenterY < centerY && index < draggedIndex) {
+                            newIndex = index;
+                        }
+                    }
+                });
+                
+                // 更新问题顺序
+                if (newIndex !== draggedIndex) {
+                    const questionId = draggedElement.getAttribute('data-id');
+                    const question = getQuestionById(questionId);
+                    
+                    if (question) {
+                        // 从原位置移除
+                        currentSurvey.questions.splice(draggedIndex, 1);
+                        
+                        // 插入新位置
+                        currentSurvey.questions.splice(newIndex, 0, question);
+                        
+                        // 重新渲染
+                        renderQuestions();
+                        selectQuestion(questionId);
+                    }
+                }
+                
+                // 恢复元素样式
+                draggedElement.style.position = '';
+                draggedElement.style.zIndex = '';
+                draggedElement.style.width = '';
+                draggedElement.style.left = '';
+                draggedElement.style.top = '';
+                
+                draggedElement = null;
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
