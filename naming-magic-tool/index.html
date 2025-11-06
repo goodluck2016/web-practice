@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>取名神器 - 为宝宝和宠物找到完美名字</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 自定义Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#FF9EBB',
+                        secondary: '#8ED1E1',
+                        accent: '#FFD1DA',
+                        light: '#FFF5F7',
+                        dark: '#5A5A5A'
+                    },
+                    fontFamily: {
+                        sans: ['Arial Rounded MT Bold', 'Avenir', 'Helvetica', 'Arial', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 2s infinite',
+                        'heart-beat': 'heartBeat 1.5s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        heartBeat: {
+                            '0%': { transform: 'scale(1)' },
+                            '14%': { transform: 'scale(1.1)' },
+                            '28%': { transform: 'scale(1)' },
+                            '42%': { transform: 'scale(1.15)' },
+                            '70%': { transform: 'scale(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .text-shadow-lg {
+                text-shadow: 0 4px 8px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.08);
+            }
+            .bg-gradient-love {
+                background: linear-gradient(135deg, #FF9EBB 0%, #8ED1E1 100%);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .heart-icon {
+                transition: all 0.3s ease;
+            }
+            .heart-icon:hover {
+                transform: scale(1.2);
+            }
+            .heart-icon.active {
+                color: #FF6B8B;
+                animation: heartBeat 1.5s ease-in-out;
+            }
+            @keyframes heartBeat {
+                0% { transform: scale(1); }
+                14% { transform: scale(1.3); }
+                28% { transform: scale(1); }
+                42% { transform: scale(1.3); }
+                70% { transform: scale(1); }
+            }
+            .confetti {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                opacity: 0;
+                animation: confetti 5s ease-in-out infinite;
+            }
+            @keyframes confetti {
+                0% {
+                    transform: translateY(0) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+            .magic-bg {
+                position: relative;
+                overflow: hidden;
+            }
+            .magic-bg::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+                transform: rotate(45deg);
+                z-index: 0;
+                animation: shine 3s infinite;
+            }
+            @keyframes shine {
+                0% {
+                    transform: translateX(-100%) rotate(45deg);
+                }
+                100% {
+                    transform: translateX(100%) rotate(45deg);
+                }
+            }
+            .chat-message {
+                opacity: 0;
+                transform: translateY(20px);
+                transition: all 0.5s ease;
+            }
+            .chat-message.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .typing-indicator {
+                display: inline-flex;
+                align-items: center;
+            }
+            .typing-indicator span {
+                height: 8px;
+                width: 8px;
+                background-color: #8ED1E1;
+                border-radius: 50%;
+                display: inline-block;
+                margin: 0 1px;
+                animation: typing 1.4s infinite both;
+            }
+            .typing-indicator span:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            .typing-indicator span:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            @keyframes typing {
+                0% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-light min-h-screen font-sans text-dark">
+    <!-- 顶部导航栏 -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/87b47b616096432e8ed2d6505d578d9f~tplv-a9rns2rl98-image.image?rcl=202511061314297C3A514F445C1532254B&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1764998082&x-signature=vUGmHs%2BZ7Vzz6v8I6cCyliNLdjE%3D" alt="Logo" class="w-10 h-10 rounded-full">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">取名神器</h1>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#home" class="text-dark hover:text-primary transition-colors duration-300 font-medium">首页</a>
+                <a href="#generator" class="text-dark hover:text-primary transition-colors duration-300 font-medium">名字生成</a>
+                <a href="#favorites" class="text-dark hover:text-primary transition-colors duration-300 font-medium">我的收藏</a>
+                <a href="#ai-assistant" class="text-dark hover:text-primary transition-colors duration-300 font-medium">AI助手</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-dark focus:outline-none">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#home" class="text-dark hover:text-primary transition-colors duration-300 font-medium py-2">首页</a>
+                <a href="#generator" class="text-dark hover:text-primary transition-colors duration-300 font-medium py-2">名字生成</a>
+                <a href="#favorites" class="text-dark hover:text-primary transition-colors duration-300 font-medium py-2">我的收藏</a>
+                <a href="#ai-assistant" class="text-dark hover:text-primary transition-colors duration-300 font-medium py-2">AI助手</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section id="home" class="py-16 md:py-24 px-4">
+        <div class="container mx-auto flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-10 md:mb-0">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6 text-shadow-lg">
+                    为你心中的<span class="text-primary">小天使</span>找到<br>最完美的名字
+                </h2>
+                <p class="text-lg md:text-xl mb-8 text-gray-600">
+                    无论是可爱的宝宝、萌宠，还是创意作品，我们的智能取名神器都能为你提供灵感和选择。
+                </p>
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="#generator" class="bg-gradient-love text-white font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-center">
+                        开始取名
+                    </a>
+                    <a href="#ai-assistant" class="border-2 border-primary text-primary font-bold py-3 px-8 rounded-full hover:bg-primary hover:text-white transition-all duration-300 text-center">
+                        AI助手
+                    </a>
+                </div>
+            </div>
+            <div class="md:w-1/2 flex justify-center">
+                <div class="relative">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/00c4f7c5fbe946e7a69f004d6584cd6d~tplv-a9rns2rl98-image.image?rcl=202511061314297C3A514F445C1532254B&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1764998081&x-signature=7HF5Ytl8fYxqvaMe3ysio0gkXT8%3D" alt="Cute Baby" class="w-64 h-64 object-contain animate-float">
+                    <div class="absolute -top-5 -right-5 w-20 h-20 bg-accent rounded-full flex items-center justify-center animate-pulse-slow">
+                        <span class="text-primary font-bold text-xl">✨</span>
+                    </div>
+                    <div class="absolute -bottom-5 -left-5 w-16 h-16 bg-secondary rounded-full flex items-center justify-center animate-bounce-slow">
+                        <span class="text-white font-bold text-xl">❤️</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 名字生成器 -->
+    <section id="generator" class="py-16 px-4 bg-white">
+        <div class="container mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-shadow">名字生成器</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    根据你的偏好，为宝宝或宠物生成完美的名字
+                </p>
+            </div>
+
+            <!-- 筛选区域 -->
+            <div class="bg-light rounded-2xl shadow-lg p-6 mb-10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- 性别选择 -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">性别</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="gender" value="all" checked class="form-radio text-primary h-5 w-5">
+                                <span class="ml-2">不限</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="gender" value="boy" class="form-radio text-primary h-5 w-5">
+                                <span class="ml-2">男孩</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="gender" value="girl" class="form-radio text-primary h-5 w-5">
+                                <span class="ml-2">女孩</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 风格选择 -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">风格</label>
+                        <select id="style-select" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="all">全部风格</option>
+                            <option value="classic">经典传统</option>
+                            <option value="modern">现代时尚</option>
+                            <option value="cute">可爱甜美</option>
+                            <option value="elegant">优雅大气</option>
+                            <option value="unique">独特创意</option>
+                        </select>
+                    </div>
+
+                    <!-- 寓意关键词 -->
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">寓意关键词</label>
+                        <input type="text" id="meaning-input" placeholder="例如：智慧、勇敢、美丽..." class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-center">
+                    <button id="generate-btn" class="bg-gradient-love text-white font-bold py-3 px-10 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center">
+                        <i class="fa fa-magic mr-2"></i> 生成名字
+                    </button>
+                </div>
+            </div>
+
+            <!-- 名字结果区域 -->
+            <div id="name-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 名字卡片将通过JS动态生成 -->
+            </div>
+
+            <!-- 加载更多按钮 -->
+            <div class="mt-10 flex justify-center">
+                <button id="load-more-btn" class="border-2 border-primary text-primary font-bold py-2 px-8 rounded-full hover:bg-primary hover:text-white transition-all duration-300 hidden">
+                    加载更多
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 我的收藏 -->
+    <section id="favorites" class="py-16 px-4 bg-light">
+        <div class="container mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-shadow">我的收藏</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    收藏你喜欢的名字，方便后续对比和选择
+                </p>
+            </div>
+
+            <!-- 收藏的名字区域 -->
+            <div id="favorites-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 收藏的名字卡片将通过JS动态生成 -->
+                <div class="col-span-full text-center py-10 text-gray-500">
+                    <i class="fa fa-heart-o text-5xl mb-4 text-primary"></i>
+                    <p class="text-xl">你还没有收藏任何名字</p>
+                    <p class="mt-2">点击名字卡片上的爱心图标添加收藏</p>
+                </div>
+            </div>
+
+            <!-- 对比按钮 -->
+            <div class="mt-10 flex justify-center">
+                <button id="compare-btn" class="bg-gradient-love text-white font-bold py-3 px-10 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fa fa-balance-scale mr-2"></i> 对比选中的名字
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI助手 -->
+    <section id="ai-assistant" class="py-16 px-4 bg-white">
+        <div class="container mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4 text-shadow">AI取名助手</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    通过对话方式，让AI了解你的偏好，为你推荐最适合的名字
+                </p>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-light rounded-2xl shadow-lg overflow-hidden">
+                <!-- 聊天记录区域 -->
+                <div id="chat-messages" class="p-6 h-96 overflow-y-auto space-y-4">
+                    <!-- AI欢迎消息 -->
+                    <div class="flex items-start">
+                        <div class="w-10 h-10 rounded-full bg-gradient-love flex items-center justify-center text-white flex-shrink-0">
+                            <i class="fa fa-robot"></i>
+                        </div>
+                        <div class="ml-3 bg-white p-4 rounded-lg shadow max-w-[80%]">
+                            <p>你好！我是你的AI取名助手。请告诉我你需要为男孩、女孩还是宠物取名？你喜欢什么风格的名字呢？</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 输入区域 -->
+                <div class="p-4 border-t border-gray-200">
+                    <form id="chat-form" class="flex">
+                        <input type="text" id="chat-input" placeholder="告诉AI你的需求..." class="flex-1 p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <button type="submit" class="bg-gradient-love text-white px-6 rounded-r-lg hover:opacity-90 transition-opacity">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 名字对比模态框 -->
+    <div id="compare-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-bold">名字对比</h3>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <div id="comparison-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- 对比内容将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-10 px-4">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/87b47b616096432e8ed2d6505d578d9f~tplv-a9rns2rl98-image.image?rcl=202511061314297C3A514F445C1532254B&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1764998082&x-signature=vUGmHs%2BZ7Vzz6v8I6cCyliNLdjE%3D" alt="Logo" class="w-8 h-8 rounded-full">
+                        <h2 class="text-xl font-bold">取名神器</h2>
+                    </div>
+                    <p class="mt-2 text-gray-400">为你心中的小天使找到最完美的名字</p>
+                </div>
+
+                <div class="flex flex-col md:flex-row md:space-x-10 space-y-6 md:space-y-0">
+                    <div>
+                        <h3 class="text-lg font-bold mb-3">功能</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#generator" class="text-gray-400 hover:text-white transition-colors">名字生成</a></li>
+                            <li><a href="#favorites" class="text-gray-400 hover:text-white transition-colors">我的收藏</a></li>
+                            <li><a href="#ai-assistant" class="text-gray-400 hover:text-white transition-colors">AI助手</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold mb-3">关于</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">关于我们</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">使用帮助</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white transition-colors">联系我们</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-10 pt-6 border-t border-gray-700 text-center text-gray-400">
+                <p>&copy; 2025 取名神器. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 模拟数据 - 名字库
+        const nameDatabase = {
+            boy: [
+                { name: "浩然", meaning: "正大光明，气宇轩昂", origin: "中国", popularity: 95, style: "classic" },
+                { name: "宇轩", meaning: "气宇轩昂，风度翩翩", origin: "中国", popularity: 92, style: "classic" },
+                { name: "梓豪", meaning: "生机勃勃，豪迈大气", origin: "中国", popularity: 88, style: "modern" },
+                { name: "梓轩", meaning: "生机勃勃，气宇轩昂", origin: "中国", popularity: 87, style: "modern" },
+                { name: "子轩", meaning: "君子之风，气宇轩昂", origin: "中国", popularity: 85, style: "classic" },
+                { name: "俊杰", meaning: "才智出众，英俊潇洒", origin: "中国", popularity: 84, style: "classic" },
+                { name: "子涵", meaning: "君子之德，涵养深厚", origin: "中国", popularity: 83, style: "classic" },
+                { name: "雨泽", meaning: "恩泽如雨，滋润万物", origin: "中国", popularity: 82, style: "elegant" },
+                { name: "博文", meaning: "博学多才，文采斐然", origin: "中国", popularity: 81, style: "classic" },
+                { name: "梓晨", meaning: "生机勃勃，充满希望", origin: "中国", popularity: 80, style: "modern" },
+                { name: "逸飞", meaning: "逸群之才，飞黄腾达", origin: "中国", popularity: 78, style: "elegant" },
+                { name: "思远", meaning: "深思远虑，志向高远", origin: "中国", popularity: 77, style: "classic" },
+                { name: "天佑", meaning: "上天庇佑，福泽深厚", origin: "中国", popularity: 76, style: "unique" },
+                { name: "梓睿", meaning: "生机勃勃，聪明睿智", origin: "中国", popularity: 75, style: "modern" },
+                { name: "浩宇", meaning: "胸怀宽广，气宇轩昂", origin: "中国", popularity: 74, style: "classic" },
+                { name: "启铭", meaning: "开启智慧，铭记美德", origin: "中国", popularity: 73, style: "unique" },
+                { name: "子墨", meaning: "君子之风，墨香文雅", origin: "中国", popularity: 72, style: "elegant" },
+                { name: "梓晨", meaning: "生机勃勃，充满希望", origin: "中国", popularity: 71, style: "modern" },
+                { name: "逸飞", meaning: "逸群之才，飞黄腾达", origin: "中国", popularity: 70, style: "elegant" },
+                { name: "思远", meaning: "深思远虑，志向高远", origin: "中国", popularity: 69, style: "classic" }
+            ],
+            girl: [
+                { name: "雨桐", meaning: "如雨露般滋润，如梧桐般高洁", origin: "中国", popularity: 94, style: "elegant" },
+                { name: "梓涵", meaning: "生机勃勃，涵养深厚", origin: "中国", popularity: 93, style: "modern" },
+                { name: "诗涵", meaning: "诗情画意，涵养深厚", origin: "中国", popularity: 91, style: "elegant" },
+                { name: "雨欣", meaning: "如雨露般滋润，欣欣向荣", origin: "中国", popularity: 90, style: "cute" },
+                { name: "思雨", meaning: "深思熟虑，如雨露般温柔", origin: "中国", popularity: 89, style: "elegant" },
+                { name: "梦瑶", meaning: "如梦似幻，如美玉般珍贵", origin: "中国", popularity: 86, style: "cute" },
+                { name: "诗琪", meaning: "诗情画意，如美玉般珍贵", origin: "中国", popularity: 85, style: "elegant" },
+                { name: "雨萱", meaning: "如雨露般滋润，如萱草般美丽", origin: "中国", popularity: 84, style: "cute" },
+                { name: "思琪", meaning: "深思熟虑，如美玉般珍贵", origin: "中国", popularity: 83, style: "elegant" },
+                { name: "语桐", meaning: "能言善辩，如梧桐般高洁", origin: "中国", popularity: 82, style: "modern" },
+                { name: "若曦", meaning: "如晨曦般温暖明亮", origin: "中国", popularity: 81, style: "cute" },
+                { name: "雨彤", meaning: "如雨露般滋润，如红霞般美丽", origin: "中国", popularity: 80, style: "cute" },
+                { name: "诗雨", meaning: "诗情画意，如雨露般温柔", origin: "中国", popularity: 79, style: "elegant" },
+                { name: "思妍", meaning: "深思熟虑，美丽聪慧", origin: "中国", popularity: 78, style: "modern" },
+                { name: "语萱", meaning: "能言善辩，如萱草般美丽", origin: "中国", popularity: 77, style: "cute" },
+                { name: "若雪", meaning: "如雪花般纯洁美丽", origin: "中国", popularity: 76, style: "cute" },
+                { name: "雨欣", meaning: "如雨露般滋润，欣欣向荣", origin: "中国", popularity: 75, style: "cute" },
+                { name: "诗涵", meaning: "诗情画意，涵养深厚", origin: "中国", popularity: 74, style: "elegant" },
+                { name: "思语", meaning: "深思熟虑，能言善辩", origin: "中国", popularity: 73, style: "modern" },
+                { name: "雨桐", meaning: "如雨露般滋润，如梧桐般高洁", origin: "中国", popularity: 72, style: "elegant" }
+            ],
+            pet: [
+                { name: "贝贝", meaning: "宝贝，可爱的小家伙", origin: "中国", popularity: 95, style: "cute" },
+                { name: "小白", meaning: "白色的，纯洁的", origin: "中国", popularity: 94, style: "cute" },
+                { name: "小黑", meaning: "黑色的，神秘的", origin: "中国", popularity: 93, style: "cute" },
+                { name: "花花", meaning: "花色的，多彩的", origin: "中国", popularity: 92, style: "cute" },
+                { name: "咪咪", meaning: "猫咪的叫声，可爱的", origin: "中国", popularity: 91, style: "cute" },
+                { name: "汪汪", meaning: "狗狗的叫声，活泼的", origin: "中国", popularity: 90, style: "cute" },
+                { name: "豆豆", meaning: "小小的，可爱的", origin: "中国", popularity: 89, style: "cute" },
+                { name: "球球", meaning: "圆滚滚的，可爱的", origin: "中国", popularity: 88, style: "cute" },
+                { name: "胖胖", meaning: "胖乎乎的，可爱的", origin: "中国", popularity: 87, style: "cute" },
+                { name: "妞妞", meaning: "小女孩，可爱的", origin: "中国", popularity: 86, style: "cute" },
+                { name: "嘟嘟", meaning: "胖乎乎的，可爱的", origin: "中国", popularity: 85, style: "cute" },
+                { name: "闹闹", meaning: "活泼好动的，调皮的", origin: "中国", popularity: 84, style: "cute" },
+                { name: "跳跳", meaning: "爱跳的，活泼的", origin: "中国", popularity: 83, style: "cute" },
+                { name: "毛毛", meaning: "毛茸茸的，可爱的", origin: "中国", popularity: 82, style: "cute" },
+                { name: "乐乐", meaning: "快乐的，活泼的", origin: "中国", popularity: 81, style: "cute" },
+                { name: "甜甜", meaning: "甜甜的，可爱的", origin: "中国", popularity: 80, style: "cute" },
+                { name: "果果", meaning: "果实，可爱的", origin: "中国", popularity: 79, style: "cute" },
+                { name: "糖糖", meaning: "甜甜的，可爱的", origin: "中国", popularity: 78, style: "cute" },
+                { name: "点点", meaning: "小小的，可爱的", origin: "中国", popularity: 77, style: "cute" },
+                { name: "乖乖", meaning: "听话的，可爱的", origin: "中国", popularity: 76, style: "cute" }
+            ]
+        };
+
+        // AI回复模板
+        const aiResponses = {
+            greeting: [
+                "你好！我是你的AI取名助手。请告诉我你需要为男孩、女孩还是宠物取名？你喜欢什么风格的名字呢？",
+                "嗨！很高兴能帮你给宝宝或宠物取名。你有什么具体的要求吗？比如性别、风格或者希望名字包含的寓意？"
+            ],
+            boy: [
+                "为男孩取名，我推荐一些寓意积极、大气的名字。你喜欢传统经典的还是现代时尚的风格呢？",
+                "男孩的名字可以体现阳刚之气和远大志向。你希望名字有什么特别的寓意吗？比如智慧、勇敢或者善良？"
+            ],
+            girl: [
+                "为女孩取名，我推荐一些优美、温柔的名字。你喜欢优雅古典的还是可爱甜美的风格呢？",
+                "女孩的名字可以体现柔美和气质。你希望名字有什么特别的寓意吗？比如美丽、聪慧或者善良？"
+            ],
+            pet: [
+                "为宠物取名，我推荐一些可爱、有趣的名字。你的宠物是什么品种呢？有没有什么特别的特征？",
+                "宠物的名字可以活泼可爱，也可以体现它们的个性。你希望名字有什么特别的风格吗？比如可爱的、时尚的或者有创意的？"
+            ],
+            style: {
+                classic: "传统经典的名字通常寓意深厚，富有文化内涵。我会为你推荐一些这样的名字。",
+                modern: "现代时尚的名字通常简洁明快，富有时代感。我会为你推荐一些这样的名字。",
+                cute: "可爱甜美的名字通常活泼可爱，富有童趣。我会为你推荐一些这样的名字。",
+                elegant: "优雅大气的名字通常优美动听，富有气质。我会为你推荐一些这样的名字。",
+                unique: "独特创意的名字通常别具一格，富有个性。我会为你推荐一些这样的名字。"
+            },
+            meaning: {
+                "智慧": "体现智慧的名字通常寓意聪明、睿智。我会为你推荐一些这样的名字。",
+                "勇敢": "体现勇敢的名字通常寓意坚强、无畏。我会为你推荐一些这样的名字。",
+                "美丽": "体现美丽的名字通常寓意漂亮、优雅。我会为你推荐一些这样的名字。",
+                "善良": "体现善良的名字通常寓意仁慈、和善。我会为你推荐一些这样的名字。",
+                "幸福": "体现幸福的名字通常寓意快乐、美满。我会为你推荐一些这样的名字。"
+            },
+            recommendation: {
+                boy: [
+                    "根据你的需求，我为你推荐以下男孩名字：浩然（正大光明，气宇轩昂）、宇轩（气宇轩昂，风度翩翩）、梓豪（生机勃勃，豪迈大气）。你喜欢哪一个呢？",
+                    "考虑到你喜欢的风格，我推荐这些男孩名字：子轩（君子之风，气宇轩昂）、俊杰（才智出众，英俊潇洒）、雨泽（恩泽如雨，滋润万物）。你觉得怎么样？"
+                ],
+                girl: [
+                    "根据你的需求，我为你推荐以下女孩名字：雨桐（如雨露般滋润，如梧桐般高洁）、诗涵（诗情画意，涵养深厚）、梦瑶（如梦似幻，如美玉般珍贵）。你喜欢哪一个呢？",
+                    "考虑到你喜欢的风格，我推荐这些女孩名字：思雨（深思熟虑，如雨露般温柔）、雨欣（如雨露般滋润，欣欣向荣）、语桐（能言善辩，如梧桐般高洁）。你觉得怎么样？"
+                ],
+                pet: [
+                    "根据你的需求，我为你推荐以下宠物名字：贝贝（宝贝，可爱的小家伙）、豆豆（小小的，可爱的）、球球（圆滚滚的，可爱的）。你喜欢哪一个呢？",
+                    "考虑到你喜欢的风格，我推荐这些宠物名字：乐乐（快乐的，活泼的）、甜甜（甜甜的，可爱的）、果果（果实，可爱的）。你觉得怎么样？"
+                ]
+            },
+            default: [
+                "我理解你的需求。请告诉我更多关于你想要的名字的信息，比如性别、风格或者希望包含的寓意，我会为你推荐更合适的名字。",
+                "很抱歉，我没有完全理解你的意思。请你详细描述一下你想要的名字的特点，比如是给男孩、女孩还是宠物取名，你喜欢什么风格等，我会尽力帮助你。"
+            ]
+        };
+
+        // DOM元素
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const generateBtn = document.getElementById('generate-btn');
+        const nameResults = document.getElementById('name-results');
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const favoritesContainer = document.getElementById('favorites-container');
+        const compareBtn = document.getElementById('compare-btn');
+        const compareModal = document.getElementById('compare-modal');
+        const closeModal = document.getElementById('close-modal');
+        const comparisonContent = document.getElementById('comparison-content');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        // 移动端菜单切换
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // 生成名字
+        let currentResults = [];
+        let currentPage = 1;
+        const resultsPerPage = 6;
+
+        generateBtn.addEventListener('click', () => {
+            const gender = document.querySelector('input[name="gender"]:checked').value;
+            const style = document.getElementById('style-select').value;
+            const meaning = document.getElementById('meaning-input').value.toLowerCase();
+
+            // 根据筛选条件过滤名字
+            let filteredNames = [];
+            
+            if (gender === 'all') {
+                filteredNames = [...nameDatabase.boy, ...nameDatabase.girl];
+            } else if (gender === 'pet') {
+                filteredNames = [...nameDatabase.pet];
+            } else {
+                filteredNames = [...nameDatabase[gender]];
+            }
+
+            if (style !== 'all') {
+                filteredNames = filteredNames.filter(name => name.style === style);
+            }
+
+            if (meaning) {
+                filteredNames = filteredNames.filter(name => 
+                    name.meaning.toLowerCase().includes(meaning) || 
+                    name.name.toLowerCase().includes(meaning)
+                );
+            }
+
+            // 随机排序
+            filteredNames.sort(() => Math.random() - 0.5);
+
+            currentResults = filteredNames;
+            currentPage = 1;
+
+            // 显示结果
+            displayResults(filteredNames.slice(0, resultsPerPage));
+
+            // 显示/隐藏加载更多按钮
+            if (filteredNames.length > resultsPerPage) {
+                loadMoreBtn.classList.remove('hidden');
+            } else {
+                loadMoreBtn.classList.add('hidden');
+            }
+
+            // 滚动到结果区域
+            nameResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // 加载更多
+        loadMoreBtn.addEventListener('click', () => {
+            currentPage++;
+            const startIndex = (currentPage - 1) * resultsPerPage;
+            const endIndex = startIndex + resultsPerPage;
+            const moreResults = currentResults.slice(startIndex, endIndex);
+
+            displayResults(moreResults, true);
+
+            if (endIndex >= currentResults.length) {
+                loadMoreBtn.classList.add('hidden');
+            }
+        });
+
+        // 显示结果
+        function displayResults(names, append = false) {
+            if (!append) {
+                nameResults.innerHTML = '';
+            }
+
+            if (names.length === 0) {
+                nameResults.innerHTML = `
+                    <div class="col-span-full text-center py-10 text-gray-500">
+                        <i class="fa fa-search text-5xl mb-4 text-primary"></i>
+                        <p class="text-xl">没有找到匹配的名字</p>
+                        <p class="mt-2">请尝试调整筛选条件</p>
+                    </div>
+                `;
+                return;
+            }
+
+            names.forEach(name => {
+                const nameCard = document.createElement('div');
+                nameCard.className = 'bg-white rounded-xl shadow-md overflow-hidden card-hover';
+                nameCard.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-2xl font-bold">${name.name}</h3>
+                            <button class="heart-icon text-gray-300 hover:text-primary" data-name="${name.name}" data-meaning="${name.meaning}" data-origin="${name.origin}" data-popularity="${name.popularity}" data-style="${name.style}">
+                                <i class="fa fa-heart-o text-xl"></i>
+                            </button>
+                        </div>
+                        <p class="text-gray-600 mb-4">${name.meaning}</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-accent text-primary text-xs px-3 py-1 rounded-full">${getStyleName(name.style)}</span>
+                            <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">${name.origin}</span>
+                            <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">流行度: ${name.popularity}</span>
+                        </div>
+                    </div>
+                `;
+                nameResults.appendChild(nameCard);
+            });
+
+            // 添加收藏事件
+            document.querySelectorAll('.heart-icon').forEach(btn => {
+                btn.addEventListener('click', toggleFavorite);
+            });
+        }
+
+        // 获取风格名称
+        function getStyleName(style) {
+            const styleMap = {
+                'classic': '经典传统',
+                'modern': '现代时尚',
+                'cute': '可爱甜美',
+                'elegant': '优雅大气',
+                'unique': '独特创意'
+            };
+            return styleMap[style] || style;
+        }
+
+        // 收藏功能
+        let favorites = JSON.parse(localStorage.getItem('namingFavorites')) || [];
+        let selectedForComparison = [];
+
+        function toggleFavorite(e) {
+            const btn = e.currentTarget;
+            const name = btn.dataset.name;
+            const meaning = btn.dataset.meaning;
+            const origin = btn.dataset.origin;
+            const popularity = btn.dataset.popularity;
+            const style = btn.dataset.style;
+
+            const nameObj = {
+                name,
+                meaning,
+                origin,
+                popularity,
+                style
+            };
+
+            // 检查是否已收藏
+            const index = favorites.findIndex(fav => fav.name === name);
+            if (index === -1) {
+                // 添加收藏
+                favorites.push(nameObj);
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa fa-heart text-xl"></i>';
+                
+                // 添加动画效果
+                createConfetti(e.clientX, e.clientY);
+            } else {
+                // 取消收藏
+                favorites.splice(index, 1);
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa fa-heart-o text-xl"></i>';
+            }
+
+            // 保存到本地存储
+            localStorage.setItem('namingFavorites', JSON.stringify(favorites));
+
+            // 更新收藏区域
+            updateFavorites();
+        }
+
+        // 创建庆祝效果
+        function createConfetti(x, y) {
+            const colors = ['#FF9EBB', '#8ED1E1', '#FFD1DA', '#FF6B8B', '#5A5A5A'];
+            
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${x}px`;
+                confetti.style.top = `${y}px`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                confetti.style.animationDelay = `${Math.random() * 5}s`;
+                
+                document.body.appendChild(confetti);
+                
+                // 移除元素
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // 更新收藏区域
+        function updateFavorites() {
+            if (favorites.length === 0) {
+                favoritesContainer.innerHTML = `
+                    <div class="col-span-full text-center py-10 text-gray-500">
+                        <i class="fa fa-heart-o text-5xl mb-4 text-primary"></i>
+                        <p class="text-xl">你还没有收藏任何名字</p>
+                        <p class="mt-2">点击名字卡片上的爱心图标添加收藏</p>
+                    </div>
+                `;
+                compareBtn.disabled = true;
+                return;
+            }
+
+            favoritesContainer.innerHTML = '';
+            favorites.forEach(name => {
+                const nameCard = document.createElement('div');
+                nameCard.className = 'bg-white rounded-xl shadow-md overflow-hidden card-hover';
+                nameCard.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-2xl font-bold">${name.name}</h3>
+                            <div class="flex space-x-2">
+                                <button class="compare-toggle text-gray-300 hover:text-secondary" data-name="${name.name}">
+                                    <i class="fa fa-check-square-o text-xl"></i>
+                                </button>
+                                <button class="heart-icon active text-primary" data-name="${name.name}">
+                                    <i class="fa fa-heart text-xl"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-4">${name.meaning}</p>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-accent text-primary text-xs px-3 py-1 rounded-full">${getStyleName(name.style)}</span>
+                            <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">${name.origin}</span>
+                            <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">流行度: ${name.popularity}</span>
+                        </div>
+                    </div>
+                `;
+                favoritesContainer.appendChild(nameCard);
+            });
+
+            // 添加取消收藏事件
+            document.querySelectorAll('.heart-icon.active').forEach(btn => {
+                btn.addEventListener('click', toggleFavorite);
+            });
+
+            // 添加对比选择事件
+            document.querySelectorAll('.compare-toggle').forEach(btn => {
+                btn.addEventListener('click', toggleCompareSelection);
+            });
+
+            // 更新对比按钮状态
+            updateCompareButton();
+        }
+
+        // 切换对比选择
+        function toggleCompareSelection(e) {
+            const btn = e.currentTarget;
+            const name = btn.dataset.name;
+            const nameObj = favorites.find(fav => fav.name === name);
+
+            // 检查是否已选择
+            const index = selectedForComparison.findIndex(sel => sel.name === name);
+            if (index === -1) {
+                // 最多选择3个进行对比
+                if (selectedForComparison.length >= 3) {
+                    alert('最多只能选择3个名字进行对比');
+                    return;
+                }
+
+                // 添加选择
+                selectedForComparison.push(nameObj);
+                btn.classList.add('text-secondary');
+                btn.innerHTML = '<i class="fa fa-check-square text-xl"></i>';
+            } else {
+                // 取消选择
+                selectedForComparison.splice(index, 1);
+                btn.classList.remove('text-secondary');
+                btn.innerHTML = '<i class="fa fa-check-square-o text-xl"></i>';
+            }
+
+            // 更新对比按钮状态
+            updateCompareButton();
+        }
+
+        // 更新对比按钮状态
+        function updateCompareButton() {
+            if (selectedForComparison.length >= 2) {
+                compareBtn.disabled = false;
+            } else {
+                compareBtn.disabled = true;
+            }
+        }
+
+        // 对比名字
+        compareBtn.addEventListener('click', () => {
+            if (selectedForComparison.length < 2) {
+                alert('请至少选择2个名字进行对比');
+                return;
+            }
+
+            // 清空对比内容
+            comparisonContent.innerHTML = '';
+
+            // 添加对比内容
+            selectedForComparison.forEach(name => {
+                const nameCard = document.createElement('div');
+                nameCard.className = 'bg-light rounded-xl p-6 shadow-md';
+                nameCard.innerHTML = `
+                    <h4 class="text-2xl font-bold mb-4">${name.name}</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <h5 class="text-gray-500 text-sm mb-1">寓意</h5>
+                            <p>${name.meaning}</p>
+                        </div>
+                        <div>
+                            <h5 class="text-gray-500 text-sm mb-1">风格</h5>
+                            <span class="bg-accent text-primary text-xs px-3 py-1 rounded-full">${getStyleName(name.style)}</span>
+                        </div>
+                        <div>
+                            <h5 class="text-gray-500 text-sm mb-1">起源</h5>
+                            <p>${name.origin}</p>
+                        </div>
+                        <div>
+                            <h5 class="text-gray-500 text-sm mb-1">流行度</h5>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                <div class="bg-primary h-2.5 rounded-full" style="width: ${name.popularity}%"></div>
+                            </div>
+                            <p class="text-right text-xs mt-1">${name.popularity}%</p>
+                        </div>
+                    </div>
+                `;
+                comparisonContent.appendChild(nameCard);
+            });
+
+            // 显示模态框
+            compareModal.classList.remove('hidden');
+        });
+
+        // 关闭模态框
+        closeModal.addEventListener('click', () => {
+            compareModal.classList.add('hidden');
+        });
+
+        // 点击模态框外部关闭
+        compareModal.addEventListener('click', (e) => {
+            if (e.target === compareModal) {
+                compareModal.classList.add('hidden');
+            }
+        });
+
+        // AI聊天功能
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = chatInput.value.trim();
+            
+            if (message) {
+                // 添加用户消息
+                addMessage(message, 'user');
+                chatInput.value = '';
+                
+                // 显示AI正在输入
+                showTypingIndicator();
+                
+                // 模拟AI回复延迟
+                setTimeout(() => {
+                    // 移除输入指示器
+                    removeTypingIndicator();
+                    
+                    // 添加AI回复
+                    const response = getAIResponse(message);
+                    addMessage(response, 'ai');
+                    
+                    // 滚动到底部
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 1000);
+            }
+        });
+
+        // 添加消息
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex items-start ${sender === 'user' ? 'justify-end' : ''} chat-message`;
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="mr-3 bg-primary p-4 rounded-lg shadow max-w-[80%]">
+                        <p class="text-white">${text}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white flex-shrink-0">
+                        <i class="fa fa-user"></i>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-gradient-love flex items-center justify-center text-white flex-shrink-0">
+                        <i class="fa fa-robot"></i>
+                    </div>
+                    <div class="ml-3 bg-white p-4 rounded-lg shadow max-w-[80%]">
+                        <p>${text}</p>
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // 添加动画效果
+            setTimeout(() => {
+                messageDiv.classList.add('show');
+            }, 100);
+            
+            // 滚动到底部
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 显示AI正在输入
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'flex items-start chat-message typing-indicator-container';
+            typingDiv.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-gradient-love flex items-center justify-center text-white flex-shrink-0">
+                    <i class="fa fa-robot"></i>
+                </div>
+                <div class="ml-3 bg-white p-4 rounded-lg shadow">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(typingDiv);
+            
+            // 添加动画效果
+            setTimeout(() => {
+                typingDiv.classList.add('show');
+            }, 100);
+            
+            // 滚动到底部
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 移除输入指示器
+        function removeTypingIndicator() {
+            const typingIndicator = document.querySelector('.typing-indicator-container');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // 获取AI回复
+        function getAIResponse(message) {
+            message = message.toLowerCase();
+            
+            // 检查是否包含特定关键词
+            if (message.includes('男孩') || message.includes('男宝') || message.includes('儿子')) {
+                return aiResponses.boy[Math.floor(Math.random() * aiResponses.boy.length)];
+            } else if (message.includes('女孩') || message.includes('女宝') || message.includes('女儿')) {
+                return aiResponses.girl[Math.floor(Math.random() * aiResponses.girl.length)];
+            } else if (message.includes('宠物') || message.includes('猫猫') || message.includes('狗狗')) {
+                return aiResponses.pet[Math.floor(Math.random() * aiResponses.pet.length)];
+            } else if (message.includes('传统') || message.includes('经典')) {
+                return aiResponses.style.classic;
+            } else if (message.includes('现代') || message.includes('时尚')) {
+                return aiResponses.style.modern;
+            } else if (message.includes('可爱') || message.includes('甜美')) {
+                return aiResponses.style.cute;
+            } else if (message.includes('优雅') || message.includes('大气')) {
+                return aiResponses.style.elegant;
+            } else if (message.includes('独特') || message.includes('创意')) {
+                return aiResponses.style.unique;
+            } else if (message.includes('智慧') || message.includes('聪明')) {
+                return aiResponses.meaning.智慧;
+            } else if (message.includes('勇敢') || message.includes('坚强')) {
+                return aiResponses.meaning.勇敢;
+            } else if (message.includes('美丽') || message.includes('漂亮')) {
+                return aiResponses.meaning.美丽;
+            } else if (message.includes('善良') || message.includes('仁慈')) {
+                return aiResponses.meaning.善良;
+            } else if (message.includes('幸福') || message.includes('快乐')) {
+                return aiResponses.meaning.幸福;
+            } else if (message.includes('推荐') || message.includes('建议') || message.includes('给我')) {
+                if (message.includes('男孩') || message.includes('男宝')) {
+                    return aiResponses.recommendation.boy[Math.floor(Math.random() * aiResponses.recommendation.boy.length)];
+                } else if (message.includes('女孩') || message.includes('女宝')) {
+                    return aiResponses.recommendation.girl[Math.floor(Math.random() * aiResponses.recommendation.girl.length)];
+                } else if (message.includes('宠物')) {
+                    return aiResponses.recommendation.pet[Math.floor(Math.random() * aiResponses.recommendation.pet.length)];
+                }
+            }
+            
+            // 默认回复
+            return aiResponses.default[Math.floor(Math.random() * aiResponses.default.length)];
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化收藏区域
+            updateFavorites();
+
+            // 默认生成一些名字
+            const defaultNames = [...nameDatabase.boy.slice(0, 3), ...nameDatabase.girl.slice(0, 3)];
+            displayResults(defaultNames);
+        });
+    </script>
+</body>
+</html>
