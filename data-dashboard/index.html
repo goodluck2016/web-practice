@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企业数据大屏</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <!-- 统一的 Tailwind 配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3B82F6',
+            secondary: '#10B981',
+            accent: '#F59E0B',
+            danger: '#EF4444',
+            dark: {
+              100: '#1E293B',
+              200: '#0F172A',
+              300: '#0B1120',
+              400: '#070D19'
+            },
+            light: {
+              100: '#F8FAFC',
+              200: '#E2E8F0',
+              300: '#CBD5E1',
+              400: '#94A3B8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .card-gradient {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+      }
+      .card-border {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .card-glow {
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+      }
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      .animate-number {
+        transition: all 0.5s ease-out;
+      }
+      .grid-dashboard {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body class="bg-dark-400 text-light-100 min-h-screen">
+  <!-- 顶部导航栏 -->
+  <header class="bg-dark-300 border-b border-gray-700 shadow-lg">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <div class="text-primary text-2xl">
+          <i class="fa fa-line-chart"></i>
+        </div>
+        <h1 class="text-xl font-bold text-light-100">企业数据大屏</h1>
+      </div>
+      
+      <div class="flex items-center space-x-6">
+        <!-- 时间范围选择器 -->
+        <div class="flex items-center space-x-2 bg-dark-100 rounded-lg px-3 py-1.5">
+          <i class="fa fa-calendar text-light-400"></i>
+          <select id="timeRange" class="bg-transparent text-light-200 focus:outline-none text-sm">
+            <option value="today">今日</option>
+            <option value="week" selected>本周</option>
+            <option value="month">本月</option>
+            <option value="quarter">本季度</option>
+            <option value="year">本年</option>
+            <option value="custom">自定义</option>
+          </select>
+        </div>
+        
+        <!-- 全局筛选器 -->
+        <div class="flex items-center space-x-2 bg-dark-100 rounded-lg px-3 py-1.5">
+          <i class="fa fa-filter text-light-400"></i>
+          <select id="categoryFilter" class="bg-transparent text-light-200 focus:outline-none text-sm">
+            <option value="all" selected>所有类别</option>
+            <option value="productA">产品A</option>
+            <option value="productB">产品B</option>
+            <option value="productC">产品C</option>
+            <option value="productD">产品D</option>
+          </select>
+        </div>
+        
+        <!-- 刷新按钮 -->
+        <button id="refreshBtn" class="bg-primary hover:bg-blue-600 text-white rounded-lg px-4 py-1.5 flex items-center space-x-1 transition-all">
+          <i class="fa fa-refresh"></i>
+          <span class="text-sm">刷新数据</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-6">
+    <!-- 核心指标卡片区 -->
+    <section class="mb-8">
+      <h2 class="text-lg font-semibold mb-4 flex items-center">
+        <i class="fa fa-tachometer text-primary mr-2"></i>
+        核心业务指标
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI卡片1：总销售额 -->
+        <div class="card-gradient rounded-xl p-4 card-border card-glow">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h3 class="text-light-400 text-sm">总销售额</h3>
+              <p class="text-2xl font-bold mt-1" id="totalSales">¥1,258,300</p>
+            </div>
+            <div class="bg-blue-500 bg-opacity-20 p-2 rounded-lg">
+              <i class="fa fa-shopping-cart text-primary"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-green-400 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i>12.5%
+            </span>
+            <span class="text-light-400 ml-2">较上月</span>
+          </div>
+        </div>
+        
+        <!-- KPI卡片2：订单量 -->
+        <div class="card-gradient rounded-xl p-4 card-border card-glow">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h3 class="text-light-400 text-sm">订单量</h3>
+              <p class="text-2xl font-bold mt-1" id="orderCount">8,742</p>
+            </div>
+            <div class="bg-green-500 bg-opacity-20 p-2 rounded-lg">
+              <i class="fa fa-file-text-o text-secondary"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-green-400 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i>8.3%
+            </span>
+            <span class="text-light-400 ml-2">较上月</span>
+          </div>
+        </div>
+        
+        <!-- KPI卡片3：客户数 -->
+        <div class="card-gradient rounded-xl p-4 card-border card-glow">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h3 class="text-light-400 text-sm">客户数</h3>
+              <p class="text-2xl font-bold mt-1" id="customerCount">3,254</p>
+            </div>
+            <div class="bg-yellow-500 bg-opacity-20 p-2 rounded-lg">
+              <i class="fa fa-users text-accent"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-green-400 flex items-center">
+              <i class="fa fa-arrow-up mr-1"></i>5.7%
+            </span>
+            <span class="text-light-400 ml-2">较上月</span>
+          </div>
+        </div>
+        
+        <!-- KPI卡片4：转化率 -->
+        <div class="card-gradient rounded-xl p-4 card-border card-glow">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h3 class="text-light-400 text-sm">转化率</h3>
+              <p class="text-2xl font-bold mt-1" id="conversionRate">24.8%</p>
+            </div>
+            <div class="bg-red-500 bg-opacity-20 p-2 rounded-lg">
+              <i class="fa fa-exchange text-danger"></i>
+            </div>
+          </div>
+          <div class="flex items-center text-sm">
+            <span class="text-red-400 flex items-center">
+              <i class="fa fa-arrow-down mr-1"></i>1.2%
+            </span>
+            <span class="text-light-400 ml-2">较上月</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 主要图表展示区 -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- 销售趋势图 -->
+      <div class="lg:col-span-2 card-gradient rounded-xl p-4 card-border card-glow">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold">销售趋势分析</h3>
+          <div class="flex space-x-2">
+            <button class="bg-dark-100 hover:bg-dark-200 text-light-200 rounded px-2 py-1 text-xs transition-all">月</button>
+            <button class="bg-primary text-white rounded px-2 py-1 text-xs">季</button>
+            <button class="bg-dark-100 hover:bg-dark-200 text-light-200 rounded px-2 py-1 text-xs transition-all">年</button>
+          </div>
+        </div>
+        <div class="h-64">
+          <canvas id="salesTrendChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- 产品类别分布 -->
+      <div class="card-gradient rounded-xl p-4 card-border card-glow">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold">产品类别分布</h3>
+          <button class="text-light-400 hover:text-light-100">
+            <i class="fa fa-ellipsis-v"></i>
+          </button>
+        </div>
+        <div class="h-64">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 次要图表展示区 -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- 地区销售分布 -->
+      <div class="card-gradient rounded-xl p-4 card-border card-glow">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold">地区销售分布</h3>
+          <button class="text-light-400 hover:text-light-100">
+            <i class="fa fa-ellipsis-v"></i>
+          </button>
+        </div>
+        <div class="h-64">
+          <canvas id="regionChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- 用户活跃度 -->
+      <div class="card-gradient rounded-xl p-4 card-border card-glow">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold">用户活跃度</h3>
+          <button class="text-light-400 hover:text-light-100">
+            <i class="fa fa-ellipsis-v"></i>
+          </button>
+        </div>
+        <div class="h-64">
+          <canvas id="activityChart"></canvas>
+        </div>
+      </div>
+      
+      <!-- 智能洞察面板 -->
+      <div class="card-gradient rounded-xl p-4 card-border card-glow">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold flex items-center">
+            <i class="fa fa-lightbulb-o text-yellow-400 mr-2"></i>
+            智能洞察
+          </h3>
+          <button class="text-light-400 hover:text-light-100">
+            <i class="fa fa-refresh"></i>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <!-- 异常数据点1 -->
+          <div class="bg-red-900 bg-opacity-20 border border-red-500 border-opacity-30 rounded-lg p-3">
+            <div class="flex items-start">
+              <div class="text-red-400 mr-3 mt-1">
+                <i class="fa fa-exclamation-triangle"></i>
+              </div>
+              <div>
+                <h4 class="font-medium text-red-300">销售额异常增长</h4>
+                <p class="text-sm text-light-300 mt-1">6月销售额较预期增长15.7%，显著高于历史平均水平。</p>
+                <div class="mt-2 flex justify-end">
+                  <button class="text-xs text-primary hover:text-blue-400">查看详情</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 异常数据点2 -->
+          <div class="bg-yellow-900 bg-opacity-20 border border-yellow-500 border-opacity-30 rounded-lg p-3">
+            <div class="flex items-start">
+              <div class="text-yellow-400 mr-3 mt-1">
+                <i class="fa fa-exclamation-circle"></i>
+              </div>
+              <div>
+                <h4 class="font-medium text-yellow-300">转化率下降</h4>
+                <p class="text-sm text-light-300 mt-1">6月15日转化率下降6.5%，建议检查用户购买流程。</p>
+                <div class="mt-2 flex justify-end">
+                  <button class="text-xs text-primary hover:text-blue-400">查看详情</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 智能建议 -->
+          <div class="bg-blue-900 bg-opacity-20 border border-blue-500 border-opacity-30 rounded-lg p-3">
+            <div class="flex items-start">
+              <div class="text-blue-400 mr-3 mt-1">
+                <i class="fa fa-lightbulb-o"></i>
+              </div>
+              <div>
+                <h4 class="font-medium text-blue-300">优化建议</h4>
+                <p class="text-sm text-light-300 mt-1">华东地区销售表现突出，建议增加该地区营销投入。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 数据表格区 -->
+    <section class="card-gradient rounded-xl p-4 card-border card-glow">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold">销售明细数据</h3>
+        <div class="flex items-center space-x-2">
+          <div class="relative">
+            <input type="text" placeholder="搜索..." class="bg-dark-100 border border-gray-700 rounded-lg px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-1 focus:ring-primary">
+            <i class="fa fa-search absolute right-3 top-2 text-light-400"></i>
+          </div>
+          <button class="bg-dark-100 hover:bg-dark-200 text-light-200 rounded-lg px-3 py-1.5 text-sm transition-all">
+            <i class="fa fa-download mr-1"></i> 导出
+          </button>
+        </div>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-700">
+          <thead>
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-light-400 uppercase tracking-wider">产品</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-light-400 uppercase tracking-wider">类别</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-light-400 uppercase tracking-wider">地区</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-light-400 uppercase tracking-wider">销售额</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-light-400 uppercase tracking-wider">订单量</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-light-400 uppercase tracking-wider">同比增长</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-700" id="salesTableBody">
+            <!-- 表格数据将通过JavaScript动态生成 -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="flex justify-between items-center mt-4">
+        <div class="text-sm text-light-400">
+          显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium">50</span> 条
+        </div>
+        <div class="flex space-x-1">
+          <button class="bg-dark-100 hover:bg-dark-200 text-light-400 rounded px-3 py-1 text-sm transition-all">上一页</button>
+          <button class="bg-primary text-white rounded px-3 py-1 text-sm">1</button>
+          <button class="bg-dark-100 hover:bg-dark-200 text-light-400 rounded px-3 py-1 text-sm transition-all">2</button>
+          <button class="bg-dark-100 hover:bg-dark-200 text-light-400 rounded px-3 py-1 text-sm transition-all">3</button>
+          <button class="bg-dark-100 hover:bg-dark-200 text-light-400 rounded px-3 py-1 text-sm transition-all">下一页</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark-300 border-t border-gray-700 py-4 mt-8">
+    <div class="container mx-auto px-4 text-center text-light-400 text-sm">
+      <p>© 2025 企业数据大屏 | 数据更新时间: <span id="lastUpdated">2025-07-21 15:30:45</span></p>
+    </div>
+  </footer>
+
+  <!-- JavaScript -->
+  <script>
+    // 模拟数据
+    const salesData = {
+      timeLabels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+      revenue: [12500, 19200, 15600, 18200, 23100, 26400],
+      target: [12000, 15000, 15000, 18000, 20000, 22000]
+    };
+
+    const categoryData = {
+      labels: ['产品A', '产品B', '产品C', '产品D', '其他'],
+      values: [35, 25, 20, 15, 5]
+    };
+
+    const regionData = {
+      labels: ['华东', '华北', '华南', '西南', '西北', '东北'],
+      values: [32, 24, 18, 12, 8, 6]
+    };
+
+    const userActivityData = {
+      days: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+      activeUsers: [1250, 1320, 1450, 1380, 1620, 980, 850]
+    };
+
+    const salesTableData = [
+      { product: '产品A-高级版', category: '产品A', region: '华东', sales: 125600, orders: 845, growth: '+15.2%' },
+      { product: '产品B-专业版', category: '产品B', region: '华北', sales: 98450, orders: 632, growth: '+8.7%' },
+      { product: '产品C-标准版', category: '产品C', region: '华南', sales: 76230, orders: 512, growth: '+12.3%' },
+      { product: '产品D-基础版', category: '产品D', region: '华东', sales: 65420, orders: 428, growth: '+5.4%' },
+      { product: '产品A-标准版', category: '产品A', region: '西南', sales: 54380, orders: 365, growth: '+7.8%' },
+      { product: '产品B-基础版', category: '产品B', region: '华东', sales: 48750, orders: 326, growth: '+3.2%' },
+      { product: '产品C-高级版', category: '产品C', region: '华北', sales: 42360, orders: 285, growth: '+9.5%' },
+      { product: '产品D-专业版', category: '产品D', region: '华南', sales: 36840, orders: 246, growth: '-1.2%' },
+      { product: '产品A-基础版', category: '产品A', region: '西北', sales: 32150, orders: 216, growth: '+4.7%' },
+      { product: '产品B-高级版', category: '产品B', region: '东北', sales: 28640, orders: 192, growth: '+6.3%' }
+    ];
+
+    // 格式化数字为货币格式
+    function formatCurrency(value) {
+      return '¥' + value.toLocaleString('zh-CN');
+    }
+
+    // 格式化数字为带千位分隔符的格式
+    function formatNumber(value) {
+      return value.toLocaleString('zh-CN');
+    }
+
+    // 初始化图表
+    document.addEventListener('DOMContentLoaded', function() {
+      // 更新表格数据
+      updateSalesTable();
+      
+      // 初始化销售趋势图
+      initSalesTrendChart();
+      
+      // 初始化产品类别分布图
+      initCategoryChart();
+      
+      // 初始化地区销售分布图
+      initRegionChart();
+      
+      // 初始化用户活跃度图
+      initActivityChart();
+      
+      // 添加刷新按钮事件
+      document.getElementById('refreshBtn').addEventListener('click', function() {
+        refreshData();
+      });
+      
+      // 添加时间范围选择事件
+      document.getElementById('timeRange').addEventListener('change', function() {
+        updateTimeRange(this.value);
+      });
+      
+      // 添加类别筛选事件
+      document.getElementById('categoryFilter').addEventListener('change', function() {
+        filterByCategory(this.value);
+      });
+    });
+
+    // 更新销售表格
+    function updateSalesTable() {
+      const tableBody = document.getElementById('salesTableBody');
+      tableBody.innerHTML = '';
+      
+      salesTableData.forEach(item => {
+        const row = document.createElement('tr');
+        
+        // 设置增长指标的颜色
+        const growthClass = item.growth.startsWith('+') ? 'text-green-400' : 'text-red-400';
+        
+        row.innerHTML = `
+          <td class="px-4 py-3 whitespace-nowrap">${item.product}</td>
+          <td class="px-4 py-3 whitespace-nowrap">${item.category}</td>
+          <td class="px-4 py-3 whitespace-nowrap">${item.region}</td>
+          <td class="px-4 py-3 whitespace-nowrap font-medium">${formatCurrency(item.sales)}</td>
+          <td class="px-4 py-3 whitespace-nowrap">${formatNumber(item.orders)}</td>
+          <td class="px-4 py-3 whitespace-nowrap ${growthClass}">${item.growth}</td>
+        `;
+        
+        tableBody.appendChild(row);
+      });
+    }
+
+    // 初始化销售趋势图
+    function initSalesTrendChart() {
+      const ctx = document.getElementById('salesTrendChart').getContext('2d');
+      
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
+      gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: salesData.timeLabels,
+          datasets: [
+            {
+              label: '销售额',
+              data: salesData.revenue,
+              borderColor: '#3B82F6',
+              backgroundColor: gradient,
+              borderWidth: 2,
+              pointBackgroundColor: '#3B82F6',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: '目标',
+              data: salesData.target,
+              borderColor: 'rgba(255, 255, 255, 0.5)',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#E2E8F0',
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleColor: '#F8FAFC',
+              bodyColor: '#E2E8F0',
+              borderColor: 'rgba(59, 130, 246, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== null) {
+                    label += formatCurrency(context.parsed.y);
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94A3B8'
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94A3B8',
+                callback: function(value) {
+                  return '¥' + (value / 10000) + '万';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 初始化产品类别分布图
+    function initCategoryChart() {
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: categoryData.labels,
+          datasets: [{
+            data: categoryData.values,
+            backgroundColor: [
+              '#3B82F6', // 蓝色
+              '#10B981', // 绿色
+              '#F59E0B', // 橙色
+              '#8B5CF6', // 紫色
+              '#64748B'  // 灰色
+            ],
+            borderColor: 'rgba(15, 23, 42, 0.8)',
+            borderWidth: 2,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#E2E8F0',
+                usePointStyle: true,
+                pointStyle: 'circle',
+                padding: 15
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleColor: '#F8FAFC',
+              bodyColor: '#E2E8F0',
+              borderColor: 'rgba(59, 130, 246, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: true,
+              callbacks: {
+                label: function(context) {
+                  let label = context.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed !== null) {
+                    label += context.parsed + '%';
+                  }
+                  return label;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 初始化地区销售分布图
+    function initRegionChart() {
+      const ctx = document.getElementById('regionChart').getContext('2d');
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: regionData.labels,
+          datasets: [{
+            label: '销售占比',
+            data: regionData.values,
+            backgroundColor: [
+              'rgba(59, 130, 246, 0.8)',
+              'rgba(59, 130, 246, 0.7)',
+              'rgba(59, 130, 246, 0.6)',
+              'rgba(59, 130, 246, 0.5)',
+              'rgba(59, 130, 246, 0.4)',
+              'rgba(59, 130, 246, 0.3)'
+            ],
+            borderColor: 'rgba(59, 130, 246, 1)',
+            borderWidth: 1,
+            borderRadius: 4,
+            barPercentage: 0.6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleColor: '#F8FAFC',
+              bodyColor: '#E2E8F0',
+              borderColor: 'rgba(59, 130, 246, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.x !== null) {
+                    label += context.parsed.x + '%';
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94A3B8',
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            },
+            y: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94A3B8'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 初始化用户活跃度图
+    function initActivityChart() {
+      const ctx = document.getElementById('activityChart').getContext('2d');
+      
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(16, 185, 129, 0.5)');
+      gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: userActivityData.days,
+          datasets: [{
+            label: '活跃用户数',
+            data: userActivityData.activeUsers,
+            borderColor: '#10B981',
+            backgroundColor: gradient,
+            borderWidth: 2,
+            pointBackgroundColor: '#10B981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleColor: '#F8FAFC',
+              bodyColor: '#E2E8F0',
+              borderColor: 'rgba(16, 185, 129, 0.3)',
+              borderWidth: 1,
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  if (label) {
+                    label += ': ';
+                  }
+                  if (context.parsed.y !== null) {
+                    label += formatNumber(context.parsed.y) + ' 人';
+                  }
+                  return label;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false,
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94A3B8'
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94A3B8'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 刷新数据
+    function refreshData() {
+      // 显示加载动画
+      const refreshBtn = document.getElementById('refreshBtn');
+      const originalContent = refreshBtn.innerHTML;
+      refreshBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+      refreshBtn.disabled = true;
+      
+      // 模拟数据加载延迟
+      setTimeout(function() {
+        // 更新KPI卡片数据（随机波动）
+        updateKPICards();
+        
+        // 更新表格数据（随机排序）
+        shuffleTableData();
+        
+        // 更新最后更新时间
+        updateLastUpdatedTime();
+        
+        // 恢复按钮状态
+        refreshBtn.innerHTML = originalContent;
+        refreshBtn.disabled = false;
+        
+        // 显示通知
+        showNotification('数据已更新');
+      }, 1000);
+    }
+
+    // 更新KPI卡片数据
+    function updateKPICards() {
+      // 总销售额
+      const totalSalesEl = document.getElementById('totalSales');
+      const currentSales = parseInt(totalSalesEl.textContent.replace(/[^\d]/g, ''));
+      const newSales = currentSales * (1 + (Math.random() * 0.04 - 0.01)); // -1% 到 +3% 的随机波动
+      animateNumberChange(totalSalesEl, Math.round(newSales));
+      
+      // 订单量
+      const orderCountEl = document.getElementById('orderCount');
+      const currentOrders = parseInt(orderCountEl.textContent.replace(/[^\d]/g, ''));
+      const newOrders = currentOrders * (1 + (Math.random() * 0.03 - 0.01)); // -1% 到 +2% 的随机波动
+      animateNumberChange(orderCountEl, Math.round(newOrders));
+      
+      // 客户数
+      const customerCountEl = document.getElementById('customerCount');
+      const currentCustomers = parseInt(customerCountEl.textContent.replace(/[^\d]/g, ''));
+      const newCustomers = currentCustomers * (1 + (Math.random() * 0.02 - 0.005)); // -0.5% 到 +1.5% 的随机波动
+      animateNumberChange(customerCountEl, Math.round(newCustomers));
+      
+      // 转化率
+      const conversionRateEl = document.getElementById('conversionRate');
+      const currentRate = parseFloat(conversionRateEl.textContent);
+      const newRate = currentRate * (1 + (Math.random() * 0.02 - 0.01)); // -1% 到 +1% 的随机波动
+      conversionRateEl.textContent = newRate.toFixed(1) + '%';
+      
+      // 更新趋势指示器
+      updateTrendIndicators();
+    }
+
+    // 数字变化动画
+    function animateNumberChange(element, targetValue) {
+      const duration = 500; // 动画持续时间（毫秒）
+      const startTime = performance.now();
+      const startValue = parseInt(element.textContent.replace(/[^\d]/g, ''));
+      const valueChange = targetValue - startValue;
+      
+      function updateNumber(currentTime) {
+        const elapsedTime = currentTime - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+        const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress); // 缓动函数
+        
+        const currentValue = Math.round(startValue + valueChange * easeProgress);
+        element.textContent = formatCurrency(currentValue);
+        
+        if (progress < 1) {
+          requestAnimationFrame(updateNumber);
+        }
+      }
+      
+      requestAnimationFrame(updateNumber);
+    }
+
+    // 更新趋势指示器
+    function updateTrendIndicators() {
+      // 这里可以根据实际数据变化更新趋势指示器
+      // 简化示例，随机更新趋势
+      const trendElements = document.querySelectorAll('.flex.items-center.text-sm span:first-child');
+      
+      trendElements.forEach(el => {
+        const isUp = Math.random() > 0.4; // 60% 概率上升
+        const percentage = (Math.random() * 10 + 1).toFixed(1);
+        
+        el.className = isUp ? 'text-green-400 flex items-center' : 'text-red-400 flex items-center';
+        el.innerHTML = `<i class="fa fa-arrow-${isUp ? 'up' : 'down'} mr-1"></i>${isUp ? '+' : ''}${percentage}%`;
+      });
+    }
+
+    // 随机排序表格数据
+    function shuffleTableData() {
+      // Fisher-Yates 洗牌算法
+      for (let i = salesTableData.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [salesTableData[i], salesTableData[j]] = [salesTableData[j], salesTableData[i]];
+      }
+      
+      // 更新表格
+      updateSalesTable();
+    }
+
+    // 更新最后更新时间
+    function updateLastUpdatedTime() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      
+      const formattedTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      document.getElementById('lastUpdated').textContent = formattedTime;
+    }
+
+    // 显示通知
+    function showNotification(message) {
+      // 创建通知元素
+      const notification = document.createElement('div');
+      notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-y-10 opacity-0 transition-all duration-300';
+      notification.textContent = message;
+      
+      // 添加到页面
+      document.body.appendChild(notification);
+      
+      // 显示通知
+      setTimeout(() => {
+        notification.classList.remove('translate-y-10', 'opacity-0');
+      }, 10);
+      
+      // 自动隐藏
+      setTimeout(() => {
+        notification.classList.add('translate-y-10', 'opacity-0');
+        
+        // 移除元素
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+
+    // 更新时间范围
+    function updateTimeRange(range) {
+      // 显示加载动画
+      const timeRangeEl = document.getElementById('timeRange');
+      timeRangeEl.disabled = true;
+      
+      // 模拟数据加载延迟
+      setTimeout(function() {
+        // 根据选择的时间范围更新数据
+        // 简化示例，仅显示通知
+        showNotification(`已切换到${timeRangeEl.options[timeRangeEl.selectedIndex].text}数据`);
+        
+        // 恢复下拉框状态
+        timeRangeEl.disabled = false;
+      }, 500);
+    }
+
+    // 按类别筛选
+    function filterByCategory(category) {
+      // 显示加载动画
+      const categoryFilterEl = document.getElementById('categoryFilter');
+      categoryFilterEl.disabled = true;
+      
+      // 模拟数据加载延迟
+      setTimeout(function() {
+        // 根据选择的类别筛选数据
+        if (category === 'all') {
+          // 显示所有数据
+          updateSalesTable();
+        } else {
+          // 筛选数据
+          const filteredData = salesTableData.filter(item => item.category.toLowerCase() === category.toLowerCase());
+          
+          // 更新表格
+          const tableBody = document.getElementById('salesTableBody');
+          tableBody.innerHTML = '';
+          
+          filteredData.forEach(item => {
+            const row = document.createElement('tr');
+            
+            // 设置增长指标的颜色
+            const growthClass = item.growth.startsWith('+') ? 'text-green-400' : 'text-red-400';
+            
+            row.innerHTML = `
+              <td class="px-4 py-3 whitespace-nowrap">${item.product}</td>
+              <td class="px-4 py-3 whitespace-nowrap">${item.category}</td>
+              <td class="px-4 py-3 whitespace-nowrap">${item.region}</td>
+              <td class="px-4 py-3 whitespace-nowrap font-medium">${formatCurrency(item.sales)}</td>
+              <td class="px-4 py-3 whitespace-nowrap">${formatNumber(item.orders)}</td>
+              <td class="px-4 py-3 whitespace-nowrap ${growthClass}">${item.growth}</td>
+            `;
+            
+            tableBody.appendChild(row);
+          });
+        }
+        
+        // 显示通知
+        showNotification(`已筛选${categoryFilterEl.options[categoryFilterEl.selectedIndex].text}数据`);
+        
+        // 恢复下拉框状态
+        categoryFilterEl.disabled = false;
+      }, 500);
+    }
+  </script>
+</body>
+</html>
